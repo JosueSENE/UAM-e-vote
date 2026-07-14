@@ -10,26 +10,48 @@ import java.util.List;
 public class UserDAO {
 
     // AUTHENTIFICATION
-    public void authentificate(String email, int code_permanent){
-        String password = PasswordHasher.hashSHA256(code_permanent);
-        String sql = "SELECT * FROM users WHERE email = ? AND code_permanent = ?";
 
-        try(Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)){
-            ps.setString(1, email);
-            ps.setString(2, password);
-
-
+    public User authentificate(String emailSaisi, String code_permanentSaisi) {
+        String query = "SELECT * FROM users WHERE email = ?"; 
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, emailSaisi);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String correctpassword = rs.getString("code_permanent");
+                    String hashSaisie = PasswordHasher.hashSHA256(code_permanentSaisi);
+                    // On compare les deux empreintes de hachage
+                    if (correctpassword != null && correctpassword.equals(hashSaisie)) {
+                        // Si les empreintes correspondent, l'authentification est validée !
+                        // On instancie l'objet User pour le renvoyer au contrôleur
+                        User user = new User();
+                        user.setId(rs.getInt("id"));
+                        user.setCode_permanent(rs.getInt("code_permanent"));
+                        user.setNom(rs.getString("nom"));
+                        user.setPrenom(rs.getString("prenom"));
+                        user.setEmail(rs.getString("email"));
+                        user.setRole(rs.getString("role"));
+                        // Récupération des clés étrangères optionnelles
+                        int filiereId = rs.getInt("filiere_id");
+                        user.setFiliere_id(rs.wasNull() ? null : filiereId);
+                        user.setNiveau(rs.getString("niveau"));                        
+                        return user; // Succès
+                    }
+                }
             }
-
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Échec de l'authentification (mauvais login ou mauvais mot de passe)
     }
 
-    // AJOUTER Un UTILISATUR (CREATE)
 
-    public void addUser(User u) throws SQLException{
-        String sql = "INSERT INTO users (code_permanent ,nom, prenom, email, role, filiere_id, niveau, ufr_id)"
-        +"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        String password = PasswordHasher.hashSHA256(u.getCode_permanent());
+    // AJOUTER UN UTILISATUR (CREATE)
+
+    public void addUser(User u, String code_permanent) throws SQLException{
+        String sql = "INSERT INTO users (code_permanent ,nom, prenom, email, role, filiere_id, niveau)"
+        +"VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String password = PasswordHasher.hashSHA256(code_permanent);
 
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)){
@@ -48,11 +70,6 @@ public class UserDAO {
                 ps.setString(7, u.getNiveau());
             }
             else {ps.setNull(7,  Types.VARCHAR);}
-
-            if (u.getUfr_id() != null){
-                ps.setInt(8, u.getUfr_id());
-            }
-            else {ps.setNull(8,  Types.INTEGER);}
 
             if (ps.executeUpdate() ==  0) throw new SQLException("Echec de l'nsertion ");
             else System.err.println("Succés : Utilisateur ajouter avec dans la base de données");
@@ -93,7 +110,6 @@ public class UserDAO {
                 u.setRole(rs.getString("role"));
                 u.setFiliere_id(rs.getInt("filiere_id"));
                 u.setNiveau(rs.getString("niveau"));
-                u.setUfr_id(rs.getInt("ufr_id"));
                 liste.add(u);
             }
             
