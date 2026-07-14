@@ -8,11 +8,11 @@ public class User {
     private String prenom;
     private String email;
     private String role;
-    private int filiere_id;
+    private Integer filiere_id;
     private String niveau;
-    private int ufr_id;
+    private Integer ufr_id;
  
-    public User(int id, int code_permanent, String nom, String prenom, String email, String role, int filiere_id, String niveau, int ufr_id) {
+    public User(int id, int code_permanent, String nom, String prenom, String email, String role, Integer filiere_id, String niveau, Integer ufr_id) {
         this.id = id;
         this.code_permanent = code_permanent;
         this.nom = nom;
@@ -44,13 +44,13 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public int getFiliere_id() {return filiere_id;}
+    public Integer getFiliere_id() {return filiere_id;}
     public void setFiliere_id(int filiere_id) {this.filiere_id = filiere_id;}
 
     public String getNiveau() {return niveau;}
     public void setNiveau(String niveau) {this.niveau = niveau;}
 
-    public int getUfr_id() {return ufr_id;}
+    public Integer getUfr_id() {return ufr_id;}
     public void setUfr_id(int ufr_id) {this.ufr_id = ufr_id;}
 
 }
