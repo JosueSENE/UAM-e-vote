@@ -10,9 +10,8 @@ public class User {
     private String role;
     private Integer filiere_id;
     private String niveau;
-    private Integer ufr_id;
- 
-    public User(int id, int code_permanent, String nom, String prenom, String email, String role, Integer filiere_id, String niveau, Integer ufr_id) {
+
+    public User(int id, int code_permanent, String nom, String prenom, String email, String role, Integer filiere_id, String niveau) {
         this.id = id;
         this.code_permanent = code_permanent;
         this.nom = nom;
@@ -21,7 +20,6 @@ public class User {
         this.role = role;
         this.filiere_id = filiere_id;
         this.niveau = niveau;
-        this.ufr_id = ufr_id;
     }
 
     public User(){}
@@ -49,8 +47,4 @@ public class User {
 
     public String getNiveau() {return niveau;}
     public void setNiveau(String niveau) {this.niveau = niveau;}
-
-    public Integer getUfr_id() {return ufr_id;}
-    public void setUfr_id(int ufr_id) {this.ufr_id = ufr_id;}
-
 }
