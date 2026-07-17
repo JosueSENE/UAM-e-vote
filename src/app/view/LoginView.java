@@ -3,6 +3,7 @@ package app.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -25,8 +26,20 @@ public class LoginView extends BorderPane {
         loginCard.setMaxSize(400, 450);
         loginCard.setPadding(new Insets(35));
         loginCard.setStyle("-fx-background-color: white; -fx-background-radius: 15; " +
-                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);");
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);");
 
+        // ============== LOGO UAM ==============
+        ImageView logoView = new ImageView();
+        try{
+            Image logo = new Image(getClass().getResourceAsStream("/ressources/logo_uam.png"));
+            logoView.setImage(logo);
+            // Ajustement de la taille du logo
+            logoView.setFitWidth(200);
+            logoView.setPreserveRatio(true);
+            logoView.setSmooth(true);
+        }catch (Exception e){
+            System.err.println("Impossible de charger le logo de l'université : "+e.getMessage());
+        }
         // En-tête
         Label lblTitle = new Label("UAM e-Vote");
         lblTitle.setFont(Font.font("System", FontWeight.BOLD, 28));
@@ -36,8 +49,15 @@ public class LoginView extends BorderPane {
         lblSubtitle.setFont(Font.font("System", FontWeight.NORMAL, 14));
         lblSubtitle.setStyle("-fx-text-fill: #777777;");
 
-        VBox headerBox = new VBox(5, lblTitle, lblSubtitle);
+        // On regroupe le logo et les textes dans le bloc d'en-tête
+        VBox headerBox = new VBox(20); // Un peu d'espace entre les éléments
         headerBox.setAlignment(Pos.CENTER);
+        
+        // Si le logo a été chargé avec succès, on l'ajoute au-dessus du titre
+        if (logoView.getImage() != null) {
+            headerBox.getChildren().add(logoView);
+        }
+        headerBox.getChildren().addAll(lblTitle, lblSubtitle);
 
         // Champ Email
         VBox emailBox = new VBox(5);
