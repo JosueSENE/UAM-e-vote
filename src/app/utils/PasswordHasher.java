@@ -13,9 +13,9 @@ public final class PasswordHasher {
      * @param code_permanent Le texte brut à hacher (ex: le matricule utilisé comme mot de passe initial)
      * @return Le hash SHA-256 de 64 caractères, ou null si l'entrée est nulle
      */
-    public static String hashSHA256(String code_permanent) {
+    public static String hashSHA256(String password) {
         // Validation de sécurité : si la chaîne en entrée est nulle, on arrête immédiatement et on retourne null
-        if (code_permanent == null) {
+        if (password == null) {
             return null;
         }
         
@@ -25,7 +25,7 @@ public final class PasswordHasher {
             
             // 1. Conversion de la chaîne de caractères (String) en un tableau d'octets (bytes) codé en UTF-8
             // 2. Calcul du hachage cryptographique sur ces octets via digest() qui retourne un tableau de 32 octets
-            byte[] hash = digest.digest(code_permanent.getBytes(StandardCharsets.UTF_8));
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             
             StringBuilder hexString = new StringBuilder();      // StringBuilder pour reconstruire efficacement la chaîne de caractères finale à partir des octets hachés
 
@@ -54,5 +54,6 @@ public final class PasswordHasher {
      * Constructeur privé pour empêcher l'instanciation de cette classe utilitaire.
      * On ne peut pas faire 'new PasswordHasher()', on appelle directement 'PasswordHasher.hashSHA256(...)'.
      */
+    
     private PasswordHasher() {}
 }

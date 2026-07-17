@@ -10,70 +10,90 @@ import java.util.List;
 
 public class UserDAO {
 
-    // AUTHENTIFICATION
+    //======================== AUTHENTIFICATION ====================
 
-    public User authentificate(String emailSaisi, String code_permanentSaisi) {
-        String query = "SELECT * FROM users WHERE email = ?"; 
-        try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, emailSaisi);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    String correctpassword = rs.getString("code_permanent");
-                    String hashSaisie = PasswordHasher.hashSHA256(code_permanentSaisi);
-                    // On compare les deux empreintes de hachage
-                    if (correctpassword != null && correctpassword.equals(hashSaisie)) {
-                        // Si les empreintes correspondent, l'authentification est validée !
-                        // On instancie l'objet User pour le renvoyer au contrôleur
-                        User us = new User();
-                        us.setId(rs.getInt("id"));
-                        us.setCode_permanent(rs.getInt("code_permanent"));
-                        us.setNom(rs.getString("nom"));
-                        us.setPrenom(rs.getString("prenom"));
-                        us.setEmail(rs.getString("email"));
-                        us.setRole(rs.getString("role"));
-                        // Récupération des clés étrangères optionnelles
-                        int filiereId = rs.getInt("filiere_id");
-                        us.setFiliere_id(rs.wasNull() ? null : filiereId);
-                        us.setNiveau(rs.getString("niveau"));                        
-                        return us; // Succès
-                    }
+    // AUTHENTIFICATION SANS RÉPÉTITION
+    
+    public User authentificate(String emailSaisi, String passwordSaisi) {
+        User u = searchUser(emailSaisi);
+        if (u == null) {
+            System.err.println("Erreur : L'utilisateur "+emailSaisi+" n'existe pass dans la base de données ");
+            return null;
+        }
+
+        // CAS A : Première connexion (Le mot de passe en base est vide ou NULL)
+        if (u.getPassword() == null || u.getPassword().trim().isEmpty()) {
+            try {
+                int codeSaisiInt = Integer.parseInt(passwordSaisi);
+                // Si la saisie correspond au Code Permanent, on valide cette première étape
+                if (u.getCode_permanent() == codeSaisiInt) {
+                    System.out.println("Première connexion validée. En attente de création du mot de passe.");
+                    return u; 
                 }
+            } catch (NumberFormatException e) {
+                System.err.println("Erreur : Le mot de passe saisi n'est pas un nombre ");
+                e.printStackTrace();
             }
-        } catch (SQLException e) {e.printStackTrace();}
-        return null; // Échec de l'authentification (mauvais login ou mauvais mot de passe)
+        } 
+        
+        // CAS B : Connexion classique (Le mot de passe est déjà configuré)
+        else {
+            String hashSaisi = PasswordHasher.hashSHA256(passwordSaisi);
+            if (u.getPassword().equals(hashSaisi)) {
+                System.out.println("Connexion validée avec succès.");
+                return u;
+            }
+        }
+
+        return null;
+    }
+
+    //  METTRE À JOUR LE MOT DE PASSE (UPDATE)
+    boolean updatePassword (int userId, String password) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            String hash = PasswordHasher.hashSHA256(password);
+            ps.setString(1, hash);
+            ps.setInt(2, userId);
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la mise à jour du mot de passe pour l'ID: " + userId);
+            e.printStackTrace();
+            return false;
+        }
     }
 
     // ===================== CRUD  ==============================
 
-    // AJOUTER UN UTILISATUR (CREATE)
+    //  AJOUTER UN UTILISATUR (CREATE)
 
-    public void addUser(User u, String code_permanent) throws SQLException{
-        String sql = "INSERT INTO users (code_permanent ,nom, prenom, email, role, filiere_id, niveau)"
+    public void addUser(User u) throws SQLException{
+        String sql = "INSERT INTO users (code_permanent ,nom, prenom, email, profession, filiere_id, niveau)"
         +"VALUES (?, ?, ?, ?, ?, ?, ?)";
-        String password = PasswordHasher.hashSHA256(code_permanent);
-
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)){
-            ps.setString(1, password);
+            ps.setInt(1, u.getCode_permanent());
             ps.setString(2, u.getNom());
             ps.setString(3, u.getPrenom());
             ps.setString(4, u.getEmail());
-            ps.setString(5, u.getRole());
+            ps.setString(5, u.getProfession());
+            ps.setInt(6,u.getFiliere_id());
             // Gestion des champs optionnels qui peuvent etre NULL
-            if (u.getFiliere_id() != null){ps.setInt(6, u.getFiliere_id());}
-            else {ps.setNull(6,  Types.INTEGER);}
-
             if (u.getNiveau() != null){ps.setString(7, u.getNiveau());}
             else {ps.setNull(7,  Types.VARCHAR);}
 
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de l'insertion ");
+            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de l'insertion de l'utilisateur");
             else System.err.println("Succés : Utilisateur ajouter dans la base de données");
             
-        }catch(SQLException e){e.printStackTrace();}
+        }catch(SQLException e){
+            System.err.println("Erreur lors de l'insertion");
+            e.printStackTrace();
+        }
     }
 
-    //RECHERCHER UN UTILISATEUR PAR SON email (READ)
+    //  RECHERCHER UN UTILISATEUR PAR SON email (READ)
 
     public User searchUser (String email){
         String sql = "SELECT * FROM users WHERE email= ?";
@@ -81,24 +101,27 @@ public class UserDAO {
             PreparedStatement ps = conn.prepareStatement(sql)){  
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()){
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setCode_permanent(rs.getInt("code_permanent"));
-                user.setNom(rs.getString("nom"));
-                user.setPrenom(rs.getString("prenom"));
-                user.setEmail(rs.getString("email"));
-                user.setRole(rs.getString("role"));
-                // Récupération des clés étrangères optionnelles
-                int filiereId = rs.getInt("filiere_id");
-                user.setFiliere_id(rs.wasNull() ? null : filiereId);
-                user.setNiveau(rs.getString("niveau"));                        
-                return user; // Succès
-                }          
-            } catch (SQLException e) {e.printStackTrace();}
+                if (rs.next()){
+                    User u = new User();
+                    u.setId(rs.getInt("id"));
+                    u.setCode_permanent(rs.getInt("code_permanent"));
+                    u.setNom(rs.getString("nom"));
+                    u.setPrenom(rs.getString("prenom"));
+                    u.setEmail(rs.getString("email"));
+                    u.setProfession(rs.getString("profession"));
+                    u.setFiliere_id(rs.getInt("filiere_id"));
+                    u.setNiveau(rs.getString("niveau"));                        
+                    return u;
+                }
+            }          
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la recherche de l'utilisateur "+ email);
+            e.printStackTrace();
+        }
         return null;
     }
 
-    //RECUPERER TOUS LES UTILISATEURS (READ)
+    //  RECUPERER TOUS LES UTILISATEURS (READ)
 
     public List<User> getAllUsers() throws SQLException{
         List<User> liste = new ArrayList<>();
@@ -113,7 +136,7 @@ public class UserDAO {
                 u.setNom(rs.getString("nom"));
                 u.setPrenom(rs.getString("prenom"));
                 u.setEmail(rs.getString("email"));
-                u.setRole(rs.getString("role"));
+                u.setProfession(rs.getString("profession"));
                 u.setFiliere_id(rs.getInt("filiere_id"));
                 u.setNiveau(rs.getString("niveau"));
                 liste.add(u);
@@ -122,42 +145,41 @@ public class UserDAO {
         return liste;
     }
 
-    //MODIFIER UN UTILISATEUR (UPDATE)
+    //  MODIFIER UN UTILISATEUR (UPDATE)
 
     public void updateUser (User u) throws SQLException{
-        String sql ="UPDATE users SET code_permanent=?, nom=?, prenom=?, email=?, role=?, filiere_id=?, niveau=? WHERE id=?";
+        String sql ="UPDATE users SET code_permanent=?, nom=?, prenom=?, email=?, profession=?, filiere_id=?, niveau=? WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setInt(1, u.getCode_permanent());
             ps.setString(2, u.getNom());
             ps.setString(3, u.getPrenom());
             ps.setString(4, u.getEmail());
-            ps.setString(5, u.getRole());
+            ps.setString(5, u.getProfession());
+            ps.setInt(6,u.getFiliere_id());
             // Gestion des champs optionnels qui peuvent etre NULL
-            if (u.getFiliere_id() != null){ps.setInt(6, u.getFiliere_id());}
-            else {ps.setNull(6,  Types.INTEGER);}
             if (u.getNiveau() != null){ps.setString(7, u.getNiveau());}
             else {ps.setNull(7,  Types.VARCHAR);}
             ps.setInt(8, u.getId());
             
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec de la mise à jour ");
-            else System.err.println("Succés : Utilisateur modifié dans la base de données");
+            if (ps.executeUpdate() ==  0) throw new SQLException("Echec de la mise à jour de l'utilisateur n° "+u.getId());
+            else System.err.println("Succés : Utilisateur n° "+u.getId()+" modifié dans la base de données");
 
         }catch (SQLException e) {e.printStackTrace();}
     } 
 
+    //  SUPPRIMER UN UTILISATEUR (DELETE)
 
-    //SUPPRIMER UN UTILISATEUR (DELETE)
-
-    public void deleteUser(int email) throws SQLException {
-        String sql = "DELETE FROM users WHERE email = ?";
+    public boolean deleteUser(int code_permanent) throws SQLException {
+        String sql = "DELETE FROM users WHERE code_permanent = ?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, email);
+            ps.setInt(1, code_permanent);
             if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de la suppression");
             else System.err.println("Succes: Utilisateur supprimer dans la base de données ");
         } catch (SQLException e) {e.printStackTrace();
         }
+        return false;
     }
     
 }

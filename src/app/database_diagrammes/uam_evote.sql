@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le : mer. 15 juil. 2026 à 20:47
+-- Généré le : ven. 17 juil. 2026 à 02:23
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -22,6 +22,21 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `uam_evote` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `uam_evote`;
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `admin`
+--
+
+CREATE TABLE `admin` (
+  `id` int(11) NOT NULL,
+  `code_permanent` int(11) NOT NULL,
+  `nom` varchar(50) NOT NULL,
+  `prenom` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- --------------------------------------------------------
 
 --
@@ -113,8 +128,9 @@ CREATE TABLE `users` (
   `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `role` varchar(255) NOT NULL,
-  `filiere_id` int(11) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `profession` enum('ETUDIANT','ENSEIGNANT') NOT NULL,
+  `filiere_id` int(11) NOT NULL,
   `niveau` enum('L1','L2','L3','M1','M2') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -135,6 +151,14 @@ CREATE TABLE `votes` (
 --
 -- Index pour les tables déchargées
 --
+
+--
+-- Index pour la table `admin`
+--
+ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `code_permanent` (`code_permanent`);
 
 --
 -- Index pour la table `candidats`
@@ -189,6 +213,8 @@ ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `code_permanent` (`code_permanent`),
   ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `filiere_id_2` (`filiere_id`),
+  ADD UNIQUE KEY `filiere_id_3` (`filiere_id`),
   ADD KEY `filiere_id` (`filiere_id`);
 
 --
@@ -206,6 +232,12 @@ ALTER TABLE `votes`
 --
 
 --
+-- AUTO_INCREMENT pour la table `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `candidats`
 --
 ALTER TABLE `candidats`
@@ -221,7 +253,7 @@ ALTER TABLE `departements`
 -- AUTO_INCREMENT pour la table `elections`
 --
 ALTER TABLE `elections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT pour la table `filieres`
@@ -289,7 +321,7 @@ ALTER TABLE `filieres`
 -- Contraintes pour la table `users`
 --
 ALTER TABLE `users`
-  ADD CONSTRAINT `etudier` FOREIGN KEY (`filiere_id`) REFERENCES `filieres` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_users_filier` FOREIGN KEY (`filiere_id`) REFERENCES `filieres` (`id`) ON UPDATE CASCADE;
 
 --
 -- Contraintes pour la table `votes`
