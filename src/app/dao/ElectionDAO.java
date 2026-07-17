@@ -40,7 +40,7 @@ public class ElectionDAO {
                 list.add(el);
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recuperation des elections : ");
+            System.err.println("Erreur lors de la récuperation des elections : ");
             e.printStackTrace();
         }
         return list;
@@ -71,7 +71,7 @@ public class ElectionDAO {
             else {ps.setNull(9, Types.VARCHAR);}
 
             if (ps.executeUpdate() == 0) throw new SQLException("Echec lors de l'insertion de l'electon"+el.getId());
-            else System.err.println("Succés : Éléction "+ el.getId()+" ajouter dans la base de données");
+            else System.err.println("Succés : Éléction "+ el.getId()+" ajoutée dans la base de données");
         } catch (SQLException e) {e.printStackTrace();}
     }
 
@@ -93,10 +93,9 @@ public class ElectionDAO {
         }
     }
 
-
     //  MISE À JOUR D'UNE ÉLÉCTION
 
-    public boolean updateElection(Election el) {
+    public void updateElection(Election el) {
         String sql = "UPDATE elections SET " +
                 "titre = ?,type_election = ?,date_debut = ?,date_fin = ?,statut = ?,cible_ufr_id = ?,"+
                 "cible_departement_id = ?,cible_filiere_id = ?,cible_niveau = ? WHERE id = ?";
@@ -113,13 +112,10 @@ public class ElectionDAO {
             // Gestion des clés étrangères facultatives (NULL)
             if (el.getCible_ufr_id() != null) {ps.setInt(6, el.getCible_ufr_id());} 
             else {ps.setNull(6, Types.INTEGER);}
-
             if (el.getCible_departemennt_id() != null) {ps.setInt(7, el.getCible_departemennt_id());} 
             else {ps.setNull(7, Types.INTEGER);}
-
             if (el.getCible_filiere_id() != null) {ps.setInt(8, el.getCible_filiere_id());} 
             else {ps.setNull(8, Types.INTEGER);}
-
             if (el.getCible_niveau() != null) {ps.setString(9, el.getCible_niveau());} 
             else {ps.setNull(9, Types.VARCHAR);}
 
@@ -128,14 +124,13 @@ public class ElectionDAO {
             if (ps.executeUpdate() > 0) {
                 el.setStatut(nouveauStatut);
                 System.out.println("Succès : Élection ID " + el.getId() + " mise à jour avec le statut '" + nouveauStatut + "'");
-                return true;
             }
-            return false;
 
         } catch (SQLException e) {
             System.err.println("Erreur lors de la mise à jour de l'élection ID " + el.getId() + " : ");
             e.printStackTrace();
-            return false;
         }
     }
+    
+
 }

@@ -23,10 +23,10 @@ public class CandidatDAO {
             ps.setString(4, c.getPhoto());
 
             if (ps.executeUpdate() == 0) throw new SQLException("Echec lors de l'insertion de la candidature n° "+c.getId());
-            else System.err.println("Succés : Le Candidat "+c.getId()+" ajouter dans la base de données");
+            else System.err.println("Succés : Candidat "+c.getId()+" ajouté dans la base de données");
             
-        } catch (Exception e) {
-            System.err.println("Erreur lors de l'insertion du candidat :");
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'insertion du candidat :"+c.getId());
             e.printStackTrace();
         }
     }
@@ -64,6 +64,7 @@ public class CandidatDAO {
         }
         return liste;
     }
+
     //  MODIFIER UN CANDIDAT
 
     public void updateCandidat (Candidat c) throws SQLException{
@@ -79,21 +80,23 @@ public class CandidatDAO {
             if (ps.executeUpdate() ==  0) throw new SQLException("Echec de la mise à jour du candidat "+c.getId());
             else System.err.println("Succés : Candidat "+c.getId()+" modifié dans la base de données");
 
-        }catch (SQLException e) {e.printStackTrace();}
+        }catch (SQLException e) {
+            System.err.println("Erreur lors de la mise à jour du candidat n° "+c.getId());
+            e.printStackTrace();}
     }
+    
     //  SUPPRIMER UN CANDIDAT (DELETE)
 
-    public boolean deleteCandidate(int id) throws SQLException {
+    public void deleteCandidate(int id) throws SQLException {
         String sql = "DELETE FROM candidats WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de la suppression du candidat ");
-            else System.err.println("Succes: Candidat n° "+id+" supprimer dans la base de données");
+            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de la suppression du candidat "+id);
+            else System.err.println("Succes: Candidat n° "+id+" supprimé dans la base de données");
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du candidat :");
+            System.err.println("Erreur lors de la suppression du candidat "+id);
             e.printStackTrace();
         }
-        return false;
     }
 }

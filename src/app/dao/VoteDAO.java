@@ -3,7 +3,7 @@ package app.dao;
 import app.utils.DBConnection;
 
 import java.sql.*;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 
@@ -37,6 +37,7 @@ public class VoteDAO {
             ps.setInt(1, electionId);
             ps.setInt(2, candidateId);
             ps.setInt(3, userId);
+
             if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors du vote ");
             else System.err.println("Succés : vote ajouter dans la base de données");
         } catch (SQLException e) {
@@ -49,16 +50,17 @@ public class VoteDAO {
     //  RECUPERATION DES RÉSULTATS 
 
     public Map<String, Integer> getResults(int electionId) {
-        Map<String, Integer> results = new HashMap<>();      
-        String sql = "SELECT u.nom, u.prenom, COUNT(v.id) AS voix "+
-                    "FROM candidats c" +
+        Map<String, Integer> results = new LinkedHashMap<>();      
+        String sql = "SELECT u.nom, u.prenom, COUNT(v.id) AS voix " +
+                    "FROM candidats c " +
                     "LEFT JOIN votes v ON c.id = v.candidat_id " +
-                    "LEFT JOIN users u ON c.user_id = u.id"+
+                    "LEFT JOIN users u ON c.user_id = u.id " +
                     "WHERE c.election_id = ? " +
-                    "GROUP BY c.id ORDER BY voix DESC";
+                    "GROUP BY c.id, u.nom, u.prenom " + 
+                    "ORDER BY voix DESC";
 
         try (Connection conn = DBConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) { 
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -67,6 +69,7 @@ public class VoteDAO {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des résultats pour l'élection ID " + electionId);
             e.printStackTrace();
         }
         return results;
