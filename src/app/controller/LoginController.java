@@ -1,9 +1,13 @@
 package app.controller;
 
 import app.dao.UserDAO;
+import app.dao.AdminDAO;
 import app.model.User;
+import app.model.Admin;
 import app.view.LoginView;
+
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -11,27 +15,36 @@ import java.util.Optional;
 
 public class LoginController {
 
-    private LoginView view; // Référence vers la Vue
+    private LoginView view; 
     private UserDAO userDAO;
-    private User utilisateurCourant = null;
+    private AdminDAO adminDAO;
+    
+    // Un seul objet courant suffit puisqu'on sait exactement ce que l'on cherche
+    private User electeurCourant = null;
+    private Admin adminCourant = null;
 
     public LoginController(LoginView view) {
         this.view = view;
         this.userDAO = new UserDAO();
+        this.adminDAO = new AdminDAO();
         
-        // Liaison des écouteurs d'événements sur la vue
         initEventHandlers();
     }
 
     private void initEventHandlers() {
-        // Détecter la perte de focus sur l'email pour adapter l'interface
+        // Détecter la perte de focus sur l'email
         view.getTxtEmail().focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal) { 
                 ajusterFormulaireSelonEmail();
             }
         });
 
-        // Actions au clic sur le bouton ou appui sur Entrée
+        // Détecter aussi le changement de sélection dans le ComboBox pour réajuster à la volée
+        view.getComboEspace().valueProperty().addListener((obs, oldVal, newVal) -> {
+            ajusterFormulaireSelonEmail();
+        });
+
+        // Actions de validation
         view.getBtnConnexion().setOnAction(e -> handleLogin());
         view.getTxtEmail().setOnAction(e -> handleLogin());
         view.getTxtSecret().setOnAction(e -> handleLogin());
@@ -39,12 +52,25 @@ public class LoginController {
 
     private void ajusterFormulaireSelonEmail() {
         String email = view.getTxtEmail().getText().trim();
+        String fonction = view.getComboEspace().getValue().trim(); // .trim() pour nettoyer l'espace de " ADMINISTRATEUR"
+
         if (email.isEmpty()) return;
 
-        utilisateurCourant = userDAO.searchUser(email);
+        String currentPassword = null;
 
-        if (utilisateurCourant != null) {
-            if (utilisateurCourant.getPassword() == null || utilisateurCourant.getPassword().trim().isEmpty()) {
+        if ("ADMINISTRATEUR".equalsIgnoreCase(fonction)) {
+            electeurCourant = null;
+            adminCourant = adminDAO.searchAdmin(email);
+            if (adminCourant != null) currentPassword = adminCourant.getPassword();
+        } else {
+            adminCourant = null;
+            electeurCourant = userDAO.searchUser(email);
+            if (electeurCourant != null) currentPassword = electeurCourant.getPassword();
+        }
+
+        // Ajustement du label d'accompagnement
+        if (electeurCourant != null || adminCourant != null) {
+            if (currentPassword == null || currentPassword.trim().isEmpty()) {
                 view.getLblSecret().setText("Code Permanent (Première connexion)");
                 view.getTxtSecret().setPromptText("Ex: 501699");
             } else {
@@ -57,36 +83,57 @@ public class LoginController {
     private void handleLogin() {
         String email = view.getTxtEmail().getText().trim();
         String secretSaisi = view.getTxtSecret().getText().trim();
+        String fonction = view.getComboEspace().getValue().trim(); 
 
         if (email.isEmpty() || secretSaisi.isEmpty()) {
             afficherAlerte(Alert.AlertType.WARNING, "Champs vides", "Veuillez remplir tous les champs.");
             return;
         }
-        // On recharge l'utilisateur depuis la base pour être sûr de son état actuel
-        utilisateurCourant = userDAO.searchUser(email);
-        if (utilisateurCourant == null) {
-            afficherAlerte(Alert.AlertType.ERROR, "Compte inconnu", "Cette adresse email n'existe pas.");
+        
+        boolean isAdmin = "ADMINISTRATEUR".equalsIgnoreCase(fonction);
+
+        // Rechargement de sécurité pour avoir l'état frais de la BDD
+        String passActuel = null;
+        int codePermanentAttendu = -1;
+
+        if (isAdmin) {
+            adminCourant = adminDAO.searchAdmin(email);
+            if (adminCourant != null) {
+                passActuel = adminCourant.getPassword();
+                codePermanentAttendu = adminCourant.getCode_permanent(); // ou getCodePermanent() selon ton modèle Admin
+            }
+        } else {
+            electeurCourant = userDAO.searchUser(email);
+            if (electeurCourant != null) {
+                passActuel = electeurCourant.getPassword();
+                codePermanentAttendu = electeurCourant.getCode_permanent();
+            }
+        }
+
+        // Si aucun compte trouvé dans la section demandée
+        if ((isAdmin && adminCourant == null) || (!isAdmin && electeurCourant == null)) {
+            afficherAlerte(Alert.AlertType.ERROR, "Compte introuvable", 
+                "Aucun compte " + fonction.toLowerCase() + " n'est enregistré avec cette adresse email.");
             return;
         }
+        
         // ================= CAS 1 : TOUTE PREMIÈRE AUTHENTIFICATION =================
-        if (utilisateurCourant.getPassword() == null || utilisateurCourant.getPassword().trim().isEmpty()) {
+        if (passActuel == null || passActuel.trim().isEmpty()) {
             try {
                 int codePermanentSaisi = Integer.parseInt(secretSaisi);
                 
-                if (utilisateurCourant.getCode_permanent() == codePermanentSaisi) {
-                    // Étape A : Le code permanent est bon -> on ouvre la boîte de dialogue
+                if (codePermanentAttendu == codePermanentSaisi) {
                     String nouveauMdp = afficherDialogCreationPassword();
                     
                     if (nouveauMdp != null && !nouveauMdp.trim().isEmpty()) {
-                        // Étape B : Enregistrement en BDD (Haché en SHA-256 !)
-                        boolean succes = userDAO.updatePassword(utilisateurCourant.getId(), nouveauMdp);
+                        boolean succes = isAdmin 
+                            ? adminDAO.updatePassword(adminCourant.getId(), nouveauMdp)
+                            : userDAO.updatePassword(electeurCourant.getId(), nouveauMdp);
+
                         if (succes) {
                             afficherAlerte(Alert.AlertType.INFORMATION, "Compte configuré !", 
-                                "Votre mot de passe a été enregistré avec succès.\n" +
-                                "Veuillez maintenant vous connecter avec votre nouveau mot de passe.");
-                            // Étape C : On réinitialise l'interface immédiatement
+                                "Votre mot de passe a été enregistré avec succès.\nConnectez-vous maintenant.");
                             view.getTxtSecret().clear(); 
-                            // On force la mise à jour de l'affichage (le label va repasser à "Mot de passe")
                             ajusterFormulaireSelonEmail(); 
                         } else {
                             afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'enregistrer le mot de passe.");
@@ -96,29 +143,33 @@ public class LoginController {
                     afficherAlerte(Alert.AlertType.ERROR, "Authentification échouée", "Le code permanent saisi est incorrect.");
                 }
             } catch (NumberFormatException e) {
-                afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "Pour votre première connexion, saisissez votre Code Permanent (chiffres uniquement).");
+                afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "Veuillez saisir votre Code Permanent (chiffres uniquement).");
             }
-            return; // On arrête là pour laisser l'utilisateur taper son nouveau mot de passe
+            return; 
         }
 
         // ================= CAS 2 : AUTHENTIFICATION CLASSIQUE AVEC MOT DE PASSE =================
-        // On appelle ta méthode de validation
-        User userValide = userDAO.authentificate(email, secretSaisi);
-        if (userValide != null) {
-            if ("administrateur".equalsIgnoreCase(userValide.getProfession())) {
+        if (isAdmin) {
+            Admin adminValide = adminDAO.authentificate(email, secretSaisi);
+            if (adminValide != null) {
                 ouvrirInterfaceAdmin();
             } else {
-                ouvrirInterfaceElecteur(userValide);
+                afficherAlerte(Alert.AlertType.ERROR, "Échec de connexion", "Mot de passe administrateur incorrect.");
             }
         } else {
-            afficherAlerte(Alert.AlertType.ERROR, "Échec de connexion", "Mot de passe incorrect.");
+            User userValide = userDAO.authentificate(email, secretSaisi);
+            if (userValide != null) {
+                ouvrirInterfaceElecteur(userValide);
+            } else {
+                afficherAlerte(Alert.AlertType.ERROR, "Échec de connexion", "Mot de passe incorrect.");
+            }
         }
     }
 
     private String afficherDialogCreationPassword() {
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Création du Mot de passe");
-        dialog.setHeaderText("Identité confirmée !\nVeuillez choisir votre mot de passe.");
+        dialog.setHeaderText("Identité confirmée !\nVeuillez configurer votre mot de passe d'accès.");
 
         ButtonType boutonValider = new ButtonType("Créer mon compte", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(boutonValider, ButtonType.CANCEL);
@@ -148,11 +199,23 @@ public class LoginController {
     }
 
     private void ouvrirInterfaceAdmin() {
-        // Redirection administration...
+        try {
+            Stage stage = (Stage) view.getScene().getWindow(); 
+            app.view.AdminView adminView = new app.view.AdminView();
+            new app.controller.AdminController(adminView);
+            
+            Scene adminScene = new Scene(adminView, 1150, 720);
+            stage.setTitle("UAM e-Vote - Espace Administration");
+            stage.setScene(adminScene);
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible de charger l'espace administration : " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    private void ouvrirInterfaceElecteur(User user) {
-        // Redirection électeur...
+    private void abrirInterfaceElecteur(User user) {
+        // Redirection vers l'espace de vote de l'étudiant/enseignant...
     }
 
     private void afficherAlerte(Alert.AlertType type, String titre, String message) {

@@ -1,7 +1,9 @@
 package app;
 
+import java.sql.Connection;
+
 import app.controller.LoginController;
-import app.utils.TestConnection;
+import app.utils.DBConnection;
 import app.view.LoginView;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -35,7 +37,7 @@ public class MainApp extends Application {
     }
 
     public static void main(String[] args) {
-        TestConnection t = new TestConnection();
+        Connection conn = DBConnection.getConnection();
         launch(args);
     }
 }

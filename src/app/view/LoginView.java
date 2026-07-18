@@ -14,6 +14,7 @@ public class LoginView extends BorderPane {
     private PasswordField txtSecret; 
     private Label lblSecret;         
     private Button btnConnexion;
+    private ComboBox<String> comboEspace;
 
     public LoginView() {
         this.setStyle("-fx-background-color: #f0f2f5;");
@@ -80,6 +81,17 @@ public class LoginView extends BorderPane {
         txtSecret.setStyle("-fx-background-radius: 5; -fx-border-color: #ddd; -fx-border-radius: 5;");
         secretBox.getChildren().addAll(lblSecret, txtSecret);
 
+         // Choix de l'espace de connexion (Électeur vs Administrateur)
+        VBox espaceBox = new VBox(7);
+        Label lblEspace = new Label("Sélectionnez votre fonction :");
+        lblEspace.setStyle("-fx-font-weight: bold; -fx-text-fill: #555;");
+        ComboBox<String> comboEspace = new ComboBox<>(); 
+        comboEspace.getItems().addAll("ETUDIANT", "ENSEIGNANT", " ADMINISTRATEUR");
+        comboEspace.setValue("ETUDIANT"); // Par défaut
+        comboEspace.setMaxWidth(Double.MAX_VALUE);
+        comboEspace.setPrefHeight(40);
+        espaceBox.getChildren().addAll(lblEspace, comboEspace);
+        
         // Bouton Connexion
         btnConnexion = new Button("Se connecter");
         btnConnexion.setMaxWidth(Double.MAX_VALUE);
@@ -87,7 +99,7 @@ public class LoginView extends BorderPane {
         btnConnexion.setCursor(javafx.scene.Cursor.HAND);
         btnConnexion.setStyle("-fx-background-color: #005088; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 5;");
 
-        loginCard.getChildren().addAll(headerBox, new Separator(), emailBox, secretBox, btnConnexion);
+        loginCard.getChildren().addAll(headerBox, new Separator(), emailBox, secretBox, espaceBox, btnConnexion);
         this.setCenter(loginCard);
     }
 
@@ -96,4 +108,5 @@ public class LoginView extends BorderPane {
     public PasswordField getTxtSecret() { return txtSecret; }
     public Label getLblSecret() { return lblSecret; }
     public Button getBtnConnexion() { return btnConnexion; }
+    public ComboBox<String> getComboEspace() { return comboEspace; }
 }
