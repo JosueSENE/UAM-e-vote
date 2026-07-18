@@ -7,68 +7,101 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
-import java.sql.SQLException;
 import java.util.List;
 
-public class AdminController {
+public class AdminController extends BorderPane {
 
-    private AdminView view;
+    private final AdminView view;
+
+    // Éléments de la Table (Récupérés depuis la vue)
+    private TableView<User> tableUsers;
+
+    // Éléments du Formulaire de droite
+    private TextField txtSearch;
+    private TextField txtCodePermanent; 
+    private TextField txtNom;
+    private TextField txtPrenom;
+    private TextField txtEmail;
+    private ComboBox<String> comboProfession; 
+
+    private Button btnAjouter;
+    private Button btnModifier;
+    private Button btnSupprimer;
+    private Button btnVider;
+    private Button btnRetour;
+
+    // Données et DAO
     private UserDAO userDAO;
     private ObservableList<User> userList;
 
-    public AdminController(AdminView view) {
-        this.view = view;
+    public AdminController() {
         this.userDAO = new UserDAO();
         this.userList = FXCollections.observableArrayList();
+        this.view = new AdminView();
+        this.setCenter(this.view);
 
-        // Initialisation et liaison
-        initListeners();
+        // Liaison des composants graphiques
+        this.tableUsers = this.view.getTableUsers();
+        this.txtSearch = this.view.getTxtSearch();
+        this.txtCodePermanent = this.view.getTxtCodePermanent();
+        this.txtNom = this.view.getTxtNom();
+        this.txtPrenom = this.view.getTxtPrenom();
+        this.txtEmail = this.view.getTxtEmail();
+        this.comboProfession = this.view.getComboProfession();
+        this.btnAjouter = this.view.getBtnAjouter();
+        this.btnModifier = this.view.getBtnModifier();
+        this.btnSupprimer = this.view.getBtnSupprimer();
+        this.btnVider = this.view.getBtnVider();
+        this.btnRetour = this.view.getBtnRetour();
+
+        // Événements
+        this.btnAjouter.setOnAction(e -> gererAjout());
+        this.btnModifier.setOnAction(e -> gererModification());
+        this.btnSupprimer.setOnAction(e -> gererSuppression());
+        this.btnVider.setOnAction(e -> clearForm());
+        this.btnRetour.setOnAction(e -> retourAuTableauBord());
+
         loadUsersData();
         setupSelectionListener();
         setupRealtimeSearch();
     }
 
     /**
-     * Liaison des actions des boutons de la vue
+     * Met à jour le CONTENU de la liste existante sans casser les liaisons du filtre
      */
-    private void initListeners() {
-        view.getBtnAjouter().setOnAction(e -> gererAjout());
-        view.getBtnModifier().setOnAction(e -> gererModification());
-        view.getBtnSupprimer().setOnAction(e -> gererSuppression());
-        view.getBtnVider().setOnAction(e -> clearForm());
-    }
-
     private void loadUsersData() {
-        try {
-            List<User> list = userDAO.getAllUsers();
-            userList.setAll(list); 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            afficherAlerte(Alert.AlertType.ERROR, "Erreur de base de données", 
-                "Impossible de récupérer la liste des utilisateurs : " + e.getMessage());
-        }
+        List<User> list = userDAO.getAllUsers();
+        userList.setAll(list); 
     }
 
+    /**
+     * Écouteur de sélection : remplit le formulaire lorsqu'on clique sur une ligne de la table
+     */
     private void setupSelectionListener() {
-        view.getTableUsers().getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+        tableUsers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                view.getTxtCodePermanent().setText(String.valueOf(newSelection.getCode_permanent()));
-                view.getTxtCodePermanent().setDisable(true); // Bloque la modification de l'identifiant unique
-                view.getTxtNom().setText(newSelection.getNom());
-                view.getTxtPrenom().setText(newSelection.getPrenom());
-                view.getTxtEmail().setText(newSelection.getEmail());
-                view.getComboProfession().setValue(newSelection.getProfession()); 
+                txtCodePermanent.setText(String.valueOf(newSelection.getCode_permanent()));
+                txtCodePermanent.setDisable(true); // Empêche de modifier la clé primaire numérique
+                txtNom.setText(newSelection.getNom());
+                txtPrenom.setText(newSelection.getPrenom());
+                txtEmail.setText(newSelection.getEmail());
+                comboProfession.setValue(newSelection.getProfession()); 
             }
         });
     }
 
+    /**
+     * Recherche dynamique en temps réel robuste et sécurisée
+     */
     private void setupRealtimeSearch() {
         FilteredList<User> filteredData = new FilteredList<>(userList, p -> true);
 
-        view.getTxtSearch().textProperty().addListener((observable, oldValue, newValue) -> {
+        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
             filteredData.setPredicate(user -> {
                 if (newValue == null || newValue.trim().isEmpty()) {
                     return true;
@@ -93,17 +126,20 @@ public class AdminController {
         });
 
         SortedList<User> sortedData = new SortedList<>(filteredData);
-        sortedData.comparatorProperty().bind(view.getTableUsers().comparatorProperty());
+        sortedData.comparatorProperty().bind(tableUsers.comparatorProperty());
         
-        view.getTableUsers().setItems(sortedData);
+        tableUsers.setItems(sortedData);
     }
 
+    /**
+     * Logique d'ajout d'un utilisateur
+     */
     private void gererAjout() {
-        String codePermanentStr = view.getTxtCodePermanent().getText().trim();
-        String nom = view.getTxtNom().getText().trim();
-        String prenom = view.getTxtPrenom().getText().trim();
-        String email = view.getTxtEmail().getText().trim();
-        String profession = view.getComboProfession().getValue(); 
+        String codePermanentStr = txtCodePermanent.getText().trim();
+        String nom = txtNom.getText().trim();
+        String prenom = txtPrenom.getText().trim();
+        String email = txtEmail.getText().trim();
+        String profession = comboProfession.getValue(); 
 
         if (codePermanentStr.isEmpty() || nom.isEmpty() || prenom.isEmpty() || email.isEmpty() || profession == null) {
             afficherAlerte(Alert.AlertType.WARNING, "Champs requis", "Veuillez remplir tous les champs du formulaire.");
@@ -112,6 +148,11 @@ public class AdminController {
 
         if (codePermanentStr.length() != 6) {
             afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "Le Code Permanent doit être composé de 6 chiffres exactement (ex: 501699).");
+            return;
+        }
+
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "L'adresse email saisie n'est pas valide.");
             return;
         }
 
@@ -125,13 +166,12 @@ public class AdminController {
             u.setEmail(email);
             u.setProfession(profession); 
 
-            try {
-                userDAO.addUser(u); // Appel direct de la méthode void
+            if (userDAO.addUser(u)) {
                 afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "L'utilisateur a été ajouté avec succès.");
                 loadUsersData(); 
                 clearForm();
-            } catch (Exception ex) {
-                afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'ajouter l'utilisateur. Vérifiez les données ou le Code Permanent.");
+            } else {
+                afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'ajouter l'utilisateur. Vérifiez que le Code Permanent n'est pas déjà enregistré.");
             }
 
         } catch (NumberFormatException ex) {
@@ -139,20 +179,28 @@ public class AdminController {
         }
     }
 
+    /**
+     * Logique de modification
+     */
     private void gererModification() {
-        User selectedUser = view.getTableUsers().getSelectionModel().getSelectedItem();
+        User selectedUser = tableUsers.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
             afficherAlerte(Alert.AlertType.WARNING, "Aucune sélection", "Sélectionnez d'abord un utilisateur dans la table.");
             return;
         }
 
-        String nom = view.getTxtNom().getText().trim();
-        String prenom = view.getTxtPrenom().getText().trim();
-        String email = view.getTxtEmail().getText().trim();
-        String profession = view.getComboProfession().getValue(); 
+        String nom = txtNom.getText().trim();
+        String prenom = txtPrenom.getText().trim();
+        String email = txtEmail.getText().trim();
+        String profession = comboProfession.getValue(); 
 
         if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty() || profession == null) {
             afficherAlerte(Alert.AlertType.WARNING, "Champs requis", "Les informations ne peuvent pas être vides.");
+            return;
+        }
+
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "L'adresse email saisie n'est pas valide.");
             return;
         }
 
@@ -161,18 +209,20 @@ public class AdminController {
         selectedUser.setEmail(email);
         selectedUser.setProfession(profession); 
 
-        try {
-            userDAO.updateUser(selectedUser); // Appel de la méthode void
+        if (userDAO.updateUser(selectedUser)) {
             afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "Utilisateur mis à jour.");
             loadUsersData();
             clearForm();
-        } catch (Exception ex) {
+        } else {
             afficherAlerte(Alert.AlertType.ERROR, "Erreur", "La mise à jour en base de données a échoué.");
         }
     }
 
+    /**
+     * Logique de suppression
+     */
     private void gererSuppression() {
-        User selectedUser = view.getTableUsers().getSelectionModel().getSelectedItem();
+        User selectedUser = tableUsers.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
             afficherAlerte(Alert.AlertType.WARNING, "Aucune sélection", "Sélectionnez l'utilisateur à supprimer.");
             return;
@@ -181,12 +231,11 @@ public class AdminController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Voulez-vous vraiment supprimer cet utilisateur ?", ButtonType.YES, ButtonType.NO);
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
-                try {
-                    userDAO.deleteUser(selectedUser.getId()); // Appel de la méthode void
+                if (userDAO.deleteUser(selectedUser.getId())) {
                     afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "Utilisateur supprimé.");
                     loadUsersData();
-                    clearForm();
-                } catch (Exception ex) {
+                    clearForm(); // Fix: Réinitialise le formulaire et réactive le champ d'identifiant
+                } else {
                     afficherAlerte(Alert.AlertType.ERROR, "Erreur", "La suppression a échoué.");
                 }
             }
@@ -194,13 +243,26 @@ public class AdminController {
     }
 
     private void clearForm() {
-        view.getTxtCodePermanent().clear();
-        view.getTxtCodePermanent().setDisable(false);
-        view.getTxtNom().clear();
-        view.getTxtPrenom().clear();
-        view.getTxtEmail().clear();
-        view.getComboProfession().setValue(null); 
-        view.getTableUsers().getSelectionModel().clearSelection();
+        txtCodePermanent.clear();
+        txtCodePermanent.setDisable(false); // Réactive le champ pour les futurs ajouts
+        txtNom.clear();
+        txtPrenom.clear();
+        txtEmail.clear();
+        comboProfession.setValue(null); 
+        tableUsers.getSelectionModel().clearSelection();
+    }
+
+    private void retourAuTableauBord() {
+        try {
+            Stage stage = (Stage) this.getScene().getWindow();
+            AdminDashboardController dashboardController = new AdminDashboardController();
+            Scene scene = new Scene(dashboardController, 1400, 700);
+            stage.setTitle("UAM e-Vote - Tableau de bord administrateur");
+            stage.setScene(scene);
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible de revenir au tableau de bord.");
+        }
     }
 
     private void afficherAlerte(Alert.AlertType type, String titre, String message) {

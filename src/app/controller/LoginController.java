@@ -9,17 +9,17 @@ import app.view.LoginView;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.Optional;
 
-public class LoginController {
+public class LoginController extends BorderPane{
 
     private LoginView view; 
     private UserDAO userDAO;
     private AdminDAO adminDAO;
     
-    // Un seul objet courant suffit puisqu'on sait exactement ce que l'on cherche
     private User electeurCourant = null;
     private Admin adminCourant = null;
 
@@ -39,7 +39,7 @@ public class LoginController {
             }
         });
 
-        // Détecter aussi le changement de sélection dans le ComboBox pour réajuster à la volée
+        // Détecter le changement de sélection dans le ComboBox
         view.getComboEspace().valueProperty().addListener((obs, oldVal, newVal) -> {
             ajusterFormulaireSelonEmail();
         });
@@ -52,7 +52,7 @@ public class LoginController {
 
     private void ajusterFormulaireSelonEmail() {
         String email = view.getTxtEmail().getText().trim();
-        String fonction = view.getComboEspace().getValue().trim(); // .trim() pour nettoyer l'espace de " ADMINISTRATEUR"
+        String fonction = view.getComboEspace().getValue().trim();
 
         if (email.isEmpty()) return;
 
@@ -68,8 +68,8 @@ public class LoginController {
             if (electeurCourant != null) currentPassword = electeurCourant.getPassword();
         }
 
-        // Ajustement du label d'accompagnement
-        if (electeurCourant != null || adminCourant != null) {
+        // Ajustement dynamique des labels et prompts de l'interface graphique
+        if (adminCourant != null || electeurCourant != null) {
             if (currentPassword == null || currentPassword.trim().isEmpty()) {
                 view.getLblSecret().setText("Code Permanent (Première connexion)");
                 view.getTxtSecret().setPromptText("Ex: 501699");
@@ -92,7 +92,6 @@ public class LoginController {
         
         boolean isAdmin = "ADMINISTRATEUR".equalsIgnoreCase(fonction);
 
-        // Rechargement de sécurité pour avoir l'état frais de la BDD
         String passActuel = null;
         int codePermanentAttendu = -1;
 
@@ -100,7 +99,7 @@ public class LoginController {
             adminCourant = adminDAO.searchAdmin(email);
             if (adminCourant != null) {
                 passActuel = adminCourant.getPassword();
-                codePermanentAttendu = adminCourant.getCode_permanent(); // ou getCodePermanent() selon ton modèle Admin
+                codePermanentAttendu = adminCourant.getCode_permanent(); 
             }
         } else {
             electeurCourant = userDAO.searchUser(email);
@@ -110,7 +109,6 @@ public class LoginController {
             }
         }
 
-        // Si aucun compte trouvé dans la section demandée
         if ((isAdmin && adminCourant == null) || (!isAdmin && electeurCourant == null)) {
             afficherAlerte(Alert.AlertType.ERROR, "Compte introuvable", 
                 "Aucun compte " + fonction.toLowerCase() + " n'est enregistré avec cette adresse email.");
@@ -125,6 +123,7 @@ public class LoginController {
                 if (codePermanentAttendu == codePermanentSaisi) {
                     String nouveauMdp = afficherDialogCreationPassword();
                     
+                    // Si l'utilisateur valide un mot de passe conforme
                     if (nouveauMdp != null && !nouveauMdp.trim().isEmpty()) {
                         boolean succes = isAdmin 
                             ? adminDAO.updatePassword(adminCourant.getId(), nouveauMdp)
@@ -132,11 +131,11 @@ public class LoginController {
 
                         if (succes) {
                             afficherAlerte(Alert.AlertType.INFORMATION, "Compte configuré !", 
-                                "Votre mot de passe a été enregistré avec succès.\nConnectez-vous maintenant.");
+                                "Votre mot de passe a été enregistré avec succès.\nVous pouvez maintenant vous connecter.");
                             view.getTxtSecret().clear(); 
                             ajusterFormulaireSelonEmail(); 
                         } else {
-                            afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'enregistrer le mot de passe.");
+                            afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'enregistrer le mot de passe dans la base de données.");
                         }
                     }
                 } else {
@@ -184,11 +183,23 @@ public class LoginController {
         container.getChildren().addAll(new Label("Choisissez un mot de passe :"), pf1, new Label("Confirmez le mot de passe :"), pf2);
         dialog.getDialogPane().setContent(container);
 
+        // Bloquer la fermeture si la validation échoue lors du clic sur "Créer mon compte"
+        final Button btValider = (Button) dialog.getDialogPane().lookupButton(boutonValider);
+        btValider.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            String mdp1 = pf1.getText().trim();
+            String mdp2 = pf2.getText().trim();
+
+            if (mdp1.isEmpty() || mdp2.isEmpty()) {
+                afficherAlerte(Alert.AlertType.WARNING, "Champs vides", "Veuillez remplir les deux champs de mot de passe.");
+                event.consume(); // Interrompt la fermeture de la boîte de dialogue
+            } else if (!mdp1.equals(mdp2)) {
+                afficherAlerte(Alert.AlertType.ERROR, "Mots de passe différents", "Les deux mots de passe saisis ne correspondent pas.");
+                event.consume(); // Interrompt également la fermeture
+            }
+        });
+
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == boutonValider) {
-                if (pf1.getText().trim().isEmpty() || !pf1.getText().equals(pf2.getText())) {
-                    return null;
-                }
                 return pf1.getText().trim();
             }
             return null;
@@ -201,10 +212,8 @@ public class LoginController {
     private void ouvrirInterfaceAdmin() {
         try {
             Stage stage = (Stage) view.getScene().getWindow(); 
-            app.view.AdminView adminView = new app.view.AdminView();
-            new app.controller.AdminController(adminView);
-            
-            Scene adminScene = new Scene(adminView, 1150, 720);
+            AdminDashboardController adminDashboardController = new AdminDashboardController();
+            Scene adminScene = new Scene(adminDashboardController, 1150, 720);       
             stage.setTitle("UAM e-Vote - Espace Administration");
             stage.setScene(adminScene);
             stage.centerOnScreen();
@@ -214,8 +223,9 @@ public class LoginController {
         }
     }
 
-    private void abrirInterfaceElecteur(User user) {
-        // Redirection vers l'espace de vote de l'étudiant/enseignant...
+    private void ouvrirInterfaceElecteur(User user) {
+        // Redirection vers l'espace de vote de l'étudiant/enseignant (Prochaine étape)
+        System.out.println("Ouverture de l'interface de vote pour l'électeur : " + user.getPrenom() + " " + user.getNom());
     }
 
     private void afficherAlerte(Alert.AlertType type, String titre, String message) {

@@ -85,7 +85,7 @@ public class LoginView extends BorderPane {
         VBox espaceBox = new VBox(7);
         Label lblEspace = new Label("Sélectionnez votre fonction :");
         lblEspace.setStyle("-fx-font-weight: bold; -fx-text-fill: #555;");
-        ComboBox<String> comboEspace = new ComboBox<>(); 
+        comboEspace = new ComboBox<>(); 
         comboEspace.getItems().addAll("ETUDIANT", "ENSEIGNANT", " ADMINISTRATEUR");
         comboEspace.setValue("ETUDIANT"); // Par défaut
         comboEspace.setMaxWidth(Double.MAX_VALUE);

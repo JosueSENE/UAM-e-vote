@@ -6,10 +6,11 @@ import java.sql.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-
 public class VoteDAO {
 
-    //  VERIFIER QU'UN ELECTEUR A VOTER OU PAS 
+    // ===================== LECTURE & VÉRIFICATION ==============================
+
+    // VÉRIFIER QU'UN ÉLECTEUR A DÉJÀ VOTÉ OU PAS
 
     public boolean hasUserVoted(int electionId, int userId) {
         String sql = "SELECT COUNT(*) FROM votes WHERE election_id = ? AND utilisateur_id = ?";
@@ -23,31 +24,13 @@ public class VoteDAO {
                 }
             }
         } catch (SQLException e) {
+            System.err.println("Erreur lors de la vérification du statut de vote (User: " + userId + ", Election: " + electionId + ")");
             e.printStackTrace();
         }
         return false;
     }
 
-    //  VOTER
-
-    public void voted(int electionId, int candidateId, int userId) {
-        String sql = "INSERT INTO votes (election_id, candidat_id, utilisateur_id) VALUES (?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, electionId);
-            ps.setInt(2, candidateId);
-            ps.setInt(3, userId);
-
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors du vote ");
-            else System.err.println("Succés : vote ajouter dans la base de données");
-        } catch (SQLException e) {
-            // Gère l'exception d'unicité SQL de manière silencieuse (contrainte UNIQUE respectée)
-            System.err.println("UAM e-Vote : Tentative de double vote rejetée par contrainte SQL.");
-            e.printStackTrace();
-        }
-    }
-
-    //  RECUPERATION DES RÉSULTATS 
+    // RÉCUPÉRATION DES RÉSULTATS (Classement par nombre de voix décroissant)
 
     public Map<String, Integer> getResults(int electionId) {
         Map<String, Integer> results = new LinkedHashMap<>();      
@@ -64,7 +47,12 @@ public class VoteDAO {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    String fullNom = rs.getString("prenom") + " " + rs.getString("nom");
+                    String prenom = rs.getString("prenom");
+                    String nom = rs.getString("nom");
+                    
+                    // Sécurité pour éviter les chaînes "null null" si l'utilisateur est introuvable
+                    String fullNom = (prenom != null && nom != null) ? (prenom + " " + nom) : "Candidat Inconnu";
+                    
                     results.put(fullNom, rs.getInt("voix"));
                 }
             }
@@ -73,5 +61,28 @@ public class VoteDAO {
             e.printStackTrace();
         }
         return results;
+    }
+
+    // ===================== CRUD ==============================
+
+    // ENREGISTRER UN VOTE (Retourne true si le vote est validé, false si tentative de double vote ou erreur)
+    
+    public boolean saveVote(int electionId, int candidateId, int userId) {
+        String sql = "INSERT INTO votes (election_id, candidat_id, utilisateur_id) VALUES (?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, electionId);
+            ps.setInt(2, candidateId);
+            ps.setInt(3, userId);
+
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Succès : Vote enregistré avec succès dans la base de données.");
+                return true;
+            }
+        } catch (SQLException e) {
+            // Intercepte de manière propre la violation de contrainte UNIQUE (double vote) sans saturer la console
+            System.err.println("UAM e-Vote : Tentative de double vote détectée ou contrainte SQL violée (User ID: " + userId + ").");
+        }
+        return false;
     }
 }
