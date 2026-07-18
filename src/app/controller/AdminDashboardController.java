@@ -1,7 +1,7 @@
 package app.controller;
 
 import app.view.AdminDashboardView;
-import app.view.LoginView; // Ajout de l'import pour la vue de connexion
+import app.view.LoginView;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
@@ -26,7 +26,7 @@ public class AdminDashboardController extends BorderPane {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
             AdminController adminController = new AdminController();
-            Scene scene = new Scene(adminController, 1400, 700); 
+            Scene scene = new Scene(adminController, 1600, 900); 
             stage.setTitle("UAM e-Vote - Gestion des Électeurs");
             stage.setScene(scene);
             stage.centerOnScreen();

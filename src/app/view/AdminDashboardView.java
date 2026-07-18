@@ -17,6 +17,11 @@ public class AdminDashboardView extends BorderPane {
 
     private final Button btnGestionElecteurs;
     private final Button btnGestionAdministrateurs;
+    private final Button btnGestionCandidat;
+    private final Button btnGestionElection;
+    private final Button btnGestionUfr;
+    private final Button btnGestionDepartement;
+    private final Button btnGestionFiliere;
     private final Button btnStatistiques;
     private final Button btnRetourConnexion;
 
@@ -59,13 +64,23 @@ public class AdminDashboardView extends BorderPane {
 
         btnGestionElecteurs = createActionButton("Gestion des electeurs", "Gérer les electeurs", "👤", "#2563eb");
         btnGestionAdministrateurs = createActionButton("Gestion des administrateurs", "Ajouter ou modifier ou supprimer un administrateur", "🏛️", "#10b981");
+        btnGestionCandidat = createActionButton("Gestion des candidats", "Ajouter ou modifier ou supprimer un candidat", "🏛️", "#103db9");
+        btnGestionElection = createActionButton("Gestion des scrutins", "Ajouter  un scrutin", "🏛️", "#14d1a2");
+        btnGestionUfr = createActionButton("Gestion des UFRs", "Ajouter ou modifier ou supprimer une ufr", "👤", "#20e919");
+        btnGestionDepartement = createActionButton("Gestion des départements", "Ajouter ou modifier ou supprimer un département", "👤", "#c6da17");
+        btnGestionFiliere = createActionButton("Gestion des filières", "Ajouter ou modifier ou supprimer une filière", "👤", "#20e919");
         btnStatistiques = createActionButton("Statistiques", "Consulter les indicateurs", "📊", "#f59e0b");
         btnRetourConnexion = createActionButton("Retour à la connexion", "Revenir à l'écran d'authentification", "↩", "#6b7280");
 
-        actionsGrid.add(createActionCard(btnGestionElecteurs, "Gestion des electeurs", "Ajouter,Modifier,supprmer,rechercher un electeur", "👤", "#2563eb"), 0, 0);
-        actionsGrid.add(createActionCard(btnGestionAdministrateurs, "Gestion des administrateurs", "Ajouter ou supprimer un administrateur", "🏛️", "#10b981"), 1, 0);
-        actionsGrid.add(createActionCard(btnStatistiques, "Statistiques", "Consulter les indicateurs", "📊", "#f59e0b"), 0, 1);
-        actionsGrid.add(createActionCard(btnRetourConnexion, "Retour à la connexion", "Revenir à l'écran d'authentification", "↩", "#6b7280"), 1, 1);
+        actionsGrid.add(createActionCard(btnGestionElecteurs, "Gestion des electeurs", "Ajouter, Modifier, Supprmer, Rechercher un electeur", "👤", "#2563eb"), 0, 0);
+        actionsGrid.add(createActionCard(btnGestionAdministrateurs, "Gestion des administrateurs", "Ajouter,Modifier ou Supprimer un administrateur", "🏛️", "#10b981"), 1, 0);
+        actionsGrid.add(createActionCard(btnGestionCandidat, "Gestion des candidats", "Ajouter,Modifier,Supprimer ou Rechercher un candidat un candidat", "🏛️", "#103db9"), 2, 0);
+        actionsGrid.add(createActionCard(btnGestionElection, "Gestion des scrutins", "Ajouter un scrutin", "🏛️", "#14d1a2"), 0, 1);
+        actionsGrid.add(createActionCard(btnGestionUfr, "Gestion des UFRs", "Ajouter, Modifier, Rechercher ou Supprimer une ufr", "👤", "#20e919"), 1, 1);
+        actionsGrid.add(createActionCard(btnGestionDepartement, "Gestion des département", "Ajouter, Modifier, Rechercher ou Supprimer un département", "👤", "#c6da17"), 2, 1);
+        actionsGrid.add(createActionCard(btnGestionFiliere, "Gestion des filières", "Ajouter, Modifier, Rechercher ou supprimer une filière", "👤", "#20e919"), 0, 2);
+        actionsGrid.add(createActionCard(btnStatistiques, "Statistiques", "Consulter les indicateurs", "📊", "#f59e0b"), 1, 2);
+        actionsGrid.add(createActionCard(btnRetourConnexion, "Retour à la connexion", "Revenir à l'écran d'authentification", "↩", "#6b7280"), 2, 2);
 
         content.getChildren().addAll(header, statsRow, actionsGrid);
         this.setCenter(content);
@@ -170,14 +185,13 @@ public class AdminDashboardView extends BorderPane {
         return button;
     }
 
-    public Button getBtnGestionUtilisateurs() {
-        return btnGestionElecteurs;
-    }
-
-    public Button getBtnGestionAdministrateurs() {
-        return btnGestionAdministrateurs;
-    }
-
+    public Button getBtnGestionUtilisateurs() { return btnGestionElecteurs; }
+    public Button getBtnGestionAdministrateurs() { return btnGestionAdministrateurs; }
+    public Button getBtnGestionCandidads() { return btnGestionCandidat; }
+    public Button getBtnGestionElections() { return btnGestionElection; }
+    public Button getBtnGestionUfrs() { return btnGestionUfr; }
+    public Button getBtnGestionDepartements() { return btnGestionDepartement; }
+    public Button getBtnGestionFilieres() { return btnGestionFiliere; }
     public Button getBtnStatistiques() {
         return btnStatistiques;
     }
