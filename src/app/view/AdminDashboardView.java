@@ -147,39 +147,39 @@ public class AdminDashboardView extends BorderPane {
         actionsGrid.add(createActionCard(btnGestionEnseignantFiliere, 
             "👤 Gestion des enseignants",
             "Ajouter, modifier, supprimer et rechercher des enseignants",
-            "#cc4c2c"), 0, 0);
+            "#cc4c2c"), 1, 0);
         actionsGrid.add(createActionCard(btnGestionAdministrateurs,
             "👤 Gestion des administrateurs", 
             "Ajouter,Modifier ou Supprimer un administrateur",
-            "#10b981"), 1, 0);
+            "#10b981"), 2, 0);
         actionsGrid.add(createActionCard(btnGestionCandidat, 
             "👤 Gestion des candidats", 
             "Ajouter,Modifier,Supprimer ou Rechercher un candidat un candidat",
-            "#103db9"), 2, 0);
+            "#103db9"), 0, 1);
         actionsGrid.add(createActionCard(btnGestionElection, 
             "🏛️ Gestion des scrutins", 
             "Ajouter un scrutin",
-            "#d3116c"), 0, 1);
+            "#d3116c"), 1, 1);
         actionsGrid.add(createActionCard(btnGestionUfr, 
             "🏛️ Gestion des UFRs", 
             "Ajouter, Modifier, Rechercher ou Supprimer une ufr",
-            "#15f5f5"), 1, 1);
+            "#15f5f5"), 2, 1);
         actionsGrid.add(createActionCard(btnGestionDepartement, 
             "🏛️ Gestion des département", 
             "Ajouter, Modifier, Rechercher ou Supprimer un département", 
-            "#69539c"), 2, 1);
+            "#69539c"), 0, 2);
         actionsGrid.add(createActionCard(btnGestionFiliere, 
             "🏛️ Gestion des filières", 
             "Ajouter, Modifier, Rechercher ou supprimer une filière", 
-            "#ac820f"), 0, 2);
+            "#ac820f"), 1, 2);
         actionsGrid.add(createActionCard(btnStatistiques, 
             "Statistiques", 
             "📊 Consulter les indicateurs",
-            "#f59e0b"), 1, 2);
+            "#f59e0b"), 2, 2);
         actionsGrid.add(createActionCard(btnRetourConnexion, 
             "↩ Retour à la connexion", 
             "Revenir à l'écran d'authentification", 
-            "#6b7280"), 2, 2);
+            "#6b7280"), 1, 3);
 
         content.getChildren().addAll(header, statsGrid, actionsHeader, actionsGrid);
         this.setCenter(content);

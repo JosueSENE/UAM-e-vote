@@ -35,11 +35,11 @@ public class AdminDashboardController extends BorderPane {
         this.view.getBtnGestionUtilisateurs().setOnAction(e -> ouvrirGestionElecteurs());
         this.view.getBtnGestionEnseignantFiliere().setOnAction(e -> ouvrirGestionEnseignant());
         this.view.getBtnGestionAdministrateurs().setOnAction(e -> ouvrirGestionAdministrateurs());
-        this.view.getBtnGestionCandidads().setOnAction(e -> ouvrirGestionCandidats()); // ✅ Nom corrigé
-        this.view.getBtnGestionElections().setOnAction(e -> ouvrirGestionElections());    // ✅ Nom corrigé
+        this.view.getBtnGestionCandidads().setOnAction(e -> ouvrirGestionCandidats()); 
+        this.view.getBtnGestionElections().setOnAction(e -> ouvrirGestionElections());    
         this.view.getBtnGestionUfrs().setOnAction(e -> ouvrirGestionUfrs());
-        this.view.getBtnGestionDepartements().setOnAction(e -> ouvrirGestionDepartements()); // ✅ Nom corrigé
-        this.view.getBtnGestionFilieres().setOnAction(e -> ouvrirGestionFilieres());         // ✅ Nom corrigé
+        this.view.getBtnGestionDepartements().setOnAction(e -> ouvrirGestionDepartements()); 
+        this.view.getBtnGestionFilieres().setOnAction(e -> ouvrirGestionFilieres());                
         this.view.getBtnStatistiques().setOnAction(e -> ouvrirStatistiques());
         this.view.getBtnRetourConnexion().setOnAction(e -> retourConnexion());
         

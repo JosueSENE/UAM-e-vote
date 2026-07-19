@@ -89,7 +89,7 @@ public class AdminUsersView extends BorderPane {
         tableUsers.setPrefHeight(550);
 
         colCodePermanent = new TableColumn<>("Code Permanent");
-        colCodePermanent.setCellValueFactory(new PropertyValueFactory<>("codePermanent"));
+        colCodePermanent.setCellValueFactory(new PropertyValueFactory<>("code_permanent"));
 
         colNom = new TableColumn<>("Nom");
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
