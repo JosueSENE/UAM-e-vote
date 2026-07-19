@@ -1,0 +1,10 @@
+﻿#Fichiers spécifiques à Eclipse
+.metadata/
+.bin/
+.tmp/
+.classpath
+.project
+.settings/
+
+#Fichiers spécifiques à VS Code
+.vscode/
