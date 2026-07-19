@@ -32,7 +32,7 @@ public class FiliereDAO {
 
     // RECHERCHER UNE FILIÈRE PAR SON id
 
-    public Filiere searchFiliere(int id) {
+    public Filiere searchFiliereById(int id) {
         String sql = "SELECT * FROM filieres WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -40,14 +40,35 @@ public class FiliereDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Filiere f = new Filiere();
-                    f.setId(rs.getInt("id"));                     // Correction : ID de la filière
-                    f.setDepartement_id(rs.getInt("departement_id")); // Correction : Clé étrangère du département
+                    f.setId(rs.getInt("id"));                   
+                    f.setDepartement_id(rs.getInt("departement_id"));
                     f.setNom(rs.getString("nom"));
                     return f;
                 }
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la recherche de la filière n° " + id);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Filiere getFiliereIdByName(String nom) throws SQLException {
+        String sql = "SELECT id FROM filieres WHERE nom = ?";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nom);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Filiere f = new Filiere();
+                    f.setId(rs.getInt("id"));                   
+                    f.setDepartement_id(rs.getInt("departement_id"));
+                    f.setNom(rs.getString("nom"));
+                    return f;
+                }
+            }
+        }catch (SQLException e) {
+            System.err.println("Erreur lors de la recherche de la filière nom " + nom);
             e.printStackTrace();
         }
         return null;

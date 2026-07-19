@@ -1,7 +1,6 @@
 package app.model;
 
-
-public class User {
+public class User  implements Connectable{
     private int id;
     private int code_permanent;
     private String nom;

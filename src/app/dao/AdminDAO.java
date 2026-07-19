@@ -169,4 +169,24 @@ public class AdminDAO {
         }
         return false;
     }
+
+    // ==========================================
+    // STATISTIQUES
+    // ==========================================
+
+    /**
+     * Récupère le nombre d'administrateurs
+     */
+    public int getTotalAdmins() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM admin";
+        
+        try (Connection conn = DBConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) { 
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
 }

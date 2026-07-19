@@ -1,6 +1,6 @@
 package app.model;
 
-public class Admin {
+public class Admin  implements Connectable {
     private int id;
     private int code_permanent;
     private String nom;

@@ -85,4 +85,33 @@ public class VoteDAO {
         }
         return false;
     }
+
+    // ==========================================
+    // STATISTIQUES
+    // ==========================================
+    
+    /**
+  * Récupère le nombre de votants (utilisateurs ayant voté)
+  */
+    public int getVotants() throws SQLException {
+        String sql = "SELECT COUNT(DISTINCT utilisateur_id) FROM votes";
+        try (Connection conn = DBConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Récupère le nombre de non-votants
+     */
+    public int getNonVotants() throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        int total = userDAO.getTotalUsers();
+        int votants = getVotants();
+        return total - votants;
+    }
 }

@@ -22,7 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class AdminView extends BorderPane {
+public class AdminUsersView extends BorderPane {
 
     private TableView<User> tableUsers;
     private TableColumn<User, Integer> colCodePermanent;
@@ -44,7 +44,7 @@ public class AdminView extends BorderPane {
     private Button btnVider;
     private Button btnRetour;
 
-    public AdminView() {
+    public AdminUsersView() {
         this.setPadding(new Insets(20));
         this.setStyle("-fx-background-color: #f8f9fa;");
         initLeftTableSection();

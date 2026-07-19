@@ -199,4 +199,80 @@ public class UserDAO {
         }
         return false;
     }
+
+    // ==========================================
+    // MÉTHODES UTILITAIRES
+    // ==========================================
+
+    public boolean emailExists(String email) throws SQLException { 
+        String sql = "SELECT 1 FROM users WHERE email = ?";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean codePermanentExists(long code) throws SQLException {
+        String sql = "SELECT 1 FROM users WHERE code_permanent = ?";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, code);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    // ==========================================
+    // STATISTIQUES
+    // ==========================================
+
+    /**
+     * Récupère le nombre total d'utilisateurs
+     */
+    public int getTotalUsers() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM users";
+        try (Connection conn = DBConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {  
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Récupère le nombre d'étudiants
+     */
+    public int getTotalEtudiants() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM users WHERE profession = 'ETUDIANT'";
+        try (Connection conn = DBConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Récupère le nombre d'enseignants
+     */
+    public int getTotalEnseignants() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM users WHERE profession = 'ENSEIGNANT'"; 
+        try (Connection conn = DBConnection.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+
+    }
 }

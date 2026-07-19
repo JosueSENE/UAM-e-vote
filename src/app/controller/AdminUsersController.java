@@ -2,7 +2,7 @@ package app.controller;
 
 import app.dao.UserDAO;
 import app.model.User;
-import app.view.AdminView;
+import app.view.AdminUsersView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -14,9 +14,9 @@ import javafx.stage.Stage;
 
 import java.util.List;
 
-public class AdminController extends BorderPane {
+public class AdminUsersController extends BorderPane {
 
-    private final AdminView view;
+    private final AdminUsersView view;
 
     // Éléments de la Table (Récupérés depuis la vue)
     private TableView<User> tableUsers;
@@ -39,10 +39,10 @@ public class AdminController extends BorderPane {
     private UserDAO userDAO;
     private ObservableList<User> userList;
 
-    public AdminController() {
+    public AdminUsersController() {
         this.userDAO = new UserDAO();
         this.userList = FXCollections.observableArrayList();
-        this.view = new AdminView();
+        this.view = new AdminUsersView();
         this.setCenter(this.view);
 
         // Liaison des composants graphiques
@@ -85,8 +85,7 @@ public class AdminController extends BorderPane {
     private void setupSelectionListener() {
         tableUsers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                txtCodePermanent.setText(String.valueOf(newSelection.getCode_permanent()));
-                txtCodePermanent.setDisable(true); // Empêche de modifier la clé primaire numérique
+                txtCodePermanent.setText(String.valueOf(newSelection.getCode_permanent())); 
                 txtNom.setText(newSelection.getNom());
                 txtPrenom.setText(newSelection.getPrenom());
                 txtEmail.setText(newSelection.getEmail());
@@ -203,7 +202,6 @@ public class AdminController extends BorderPane {
             afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "L'adresse email saisie n'est pas valide.");
             return;
         }
-
         selectedUser.setNom(nom);
         selectedUser.setPrenom(prenom);
         selectedUser.setEmail(email);
