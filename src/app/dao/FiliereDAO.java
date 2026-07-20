@@ -9,130 +9,94 @@ import app.utils.DBConnection;
 
 public class FiliereDAO {
 
-    // ===================== CRUD ==============================
+    // AJOUTER UNE FILIÉRE
 
-    // AJOUTER UNE FILIÈRE (Retourne true si l'ajout a réussi)
-    public boolean addFiliere(Filiere f) {
+    public void addFiliere ( Filiere f) throws SQLException{
         String sql = "INSERT INTO filieres (departement_id, nom) VALUES (?, ?)";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setInt(1, f.getDepartement_id());
             ps.setString(2, f.getNom());
-            
-            if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Filière " + f.getNom() + " ajoutée dans la base de données");
-                return true;
-            }
+            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de l'insertion de la filière "+f.getNom());
+            else System.err.println("Succés : Filière "+f.getNom()+" ajoutée dans la base de données");
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion de la filière " + f.getNom());
+            System.err.println("Erreur lors de l'insertion de la filière "+f.getNom());
             e.printStackTrace();
         }
-        return false;
     }
 
-    // RECHERCHER UNE FILIÈRE PAR SON id
+    // RECHERCHER UNE FILIERE PAR SON id
 
-    public Filiere searchFiliereById(int id) {
-        String sql = "SELECT * FROM filieres WHERE id = ?";
+    public Filiere searchFiliere (int id){
+        String sql = "SELECT * FROM filieres WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
+        PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1,id);
+            try (ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
                     Filiere f = new Filiere();
-                    f.setId(rs.getInt("id"));                   
-                    f.setDepartement_id(rs.getInt("departement_id"));
+                    f.setId(rs.getInt("departement_id"));
                     f.setNom(rs.getString("nom"));
                     return f;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche de la filière n° " + id);
+            System.err.println("Erreur lors de la recherche de la filière n° "+ id);
             e.printStackTrace();
         }
         return null;
     }
 
-    public Filiere getFiliereIdByName(String nom) throws SQLException {
-        String sql = "SELECT id FROM filieres WHERE nom = ?";
-        try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, nom);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Filiere f = new Filiere();
-                    f.setId(rs.getInt("id"));                   
-                    f.setDepartement_id(rs.getInt("departement_id"));
-                    f.setNom(rs.getString("nom"));
-                    return f;
-                }
-            }
-        }catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche de la filière nom " + nom);
-            e.printStackTrace();
-        }
-        return null;
-    }
+    //  RECUPERER TOUS LES FILIÈRES
 
-    // RÉCUPÉRER TOUTES LES FILIÈRES
-
-    public List<Filiere> getAllFilieres() {
+    public List<Filiere> getAllFilieres() throws SQLException{
         List<Filiere> liste = new ArrayList<>();
         String sql = "SELECT * FROM filieres ORDER BY id DESC";
         try (Connection conn = DBConnection.getConnection();
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
+            ResultSet rs = stmt.executeQuery(sql)){
+            while (rs.next()){
                 Filiere f = new Filiere();
-                f.setId(rs.getInt("id"));                     // Correction : Récupération de l'ID de la ligne
-                f.setDepartement_id(rs.getInt("departement_id")); // Récupération du département lié
+                f.setDepartement_id(rs.getInt("departement_id"));
                 f.setNom(rs.getString("nom"));
                 liste.add(f);
             }       
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des filières");
+            System.err.println("Erreur lors de la récuperation des filières : ");
             e.printStackTrace();
         }
         return liste;
     }
 
-    // MODIFIER UNE FILIÈRE (Retourne true si la modification a réussi)
+    //  MODIFIER UNE FILIÈRE
 
-    public boolean updateFiliere(Filiere f) {
-        String sql = "UPDATE filieres SET departement_id = ?, nom = ? WHERE id = ?";
+    public void updateFiliere (Filiere f) throws SQLException{
+        String sql = "UPDADE filieres SET departement_id=?, nom=? WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setInt(1, f.getDepartement_id());
             ps.setString(2, f.getNom());
-            ps.setInt(3, f.getId());
-            
-            if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Filière " + f.getNom() + " modifiée dans la base de données");
-                return true;
-            }
+            if (ps.executeUpdate() ==  0) throw new SQLException("Echec de la mise à jour de la filière "+f.getNom());
+            else System.err.println("Succés : Filière "+f.getNom()+" modifiée dans la base de données");
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour de la filière " + f.getNom());
+            System.err.println("Erreur lors de la mise à jour de la filière "+f.getNom());
             e.printStackTrace();
         }
-        return false;
     }
 
-    // SUPPRIMER UNE FILIÈRE (Retourne true si la suppression a réussi)
+    //  SUPPRIMER UNE FILIERE
 
-    public boolean deleteFiliere(int id) {
-        String sql = "DELETE FROM filieres WHERE id = ?";
+    public void deleteFiliere (int id) throws SQLException {
+        String sql = "DELETE FROM filieres WHERE id=?";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)){
             ps.setInt(1, id);
-            
-            if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Filière n° " + id + " supprimée dans la base de données");
-                return true;
-            }
+            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de la suppression de la filière n° "+id);
+            else System.err.println("Succes: Filière "+id+" supprimée dans la base de données ");  
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression de la filière n° " + id);
+            System.err.println("Erreur lors de la suppression de la filière "+id);
             e.printStackTrace();
         }
-        return false;
     }
+    
 }

@@ -1,5 +1,6 @@
 package app.view;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,20 +16,16 @@ public class AdminDashboardView extends BorderPane {
 
     private final Button btnGestionElecteurs;
     private final Button btnGestionAdministrateurs;
-    private final Button btnGestionCandidat;
-    private final Button btnGestionElection;
-    private final Button btnGestionEnseignantFiliere;
-    private final Button btnGestionUfr;
-    private final Button btnGestionDepartement;
-    private final Button btnGestionFiliere;
     private final Button btnStatistiques;
     private final Button btnRetourConnexion;
-
+    
     private Label lblTotalEtudiants;
     private Label lblTotalEnseignants;
     private Label lblTotalAdmins;
     private Label lblVotants;
     private Label lblNonVotants;
+    private Label lblEnLigne;
+    private Label lblHorsLigne;
     private Label lblTotal;
 
     public AdminDashboardView() {
@@ -40,7 +37,6 @@ public class AdminDashboardView extends BorderPane {
         content.setAlignment(Pos.TOP_CENTER);
 
         // EN-TÊTE
-
         VBox header = new VBox(5);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(20, 30, 20, 30));
@@ -61,14 +57,14 @@ public class AdminDashboardView extends BorderPane {
 
         header.getChildren().addAll(title, subtitle);
 
-        // STATISTIQUES - GRID 3x2
+        // STATISTIQUES - GRID 4x2
         GridPane statsGrid = new GridPane();
         statsGrid.setHgap(14);
         statsGrid.setVgap(14);
         statsGrid.setAlignment(Pos.CENTER);
         statsGrid.setPadding(new Insets(10, 0, 10, 0));
         
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             ColumnConstraints col = new ColumnConstraints();
             col.setPercentWidth(25);
             statsGrid.getColumnConstraints().add(col);
@@ -80,6 +76,8 @@ public class AdminDashboardView extends BorderPane {
         VBox cardAdmins = createStatCard("👤", "Administrateurs", "0", "#0673aded", "#dfdfe2");
         VBox cardVotants = createStatCard("📨", "Votants", "0", "#0673aded", "#d7d8dc");
         VBox cardNonVotants = createStatCard("📨", "Non Votants", "0", "#0673aded", "#d8d9dd");
+        VBox cardEnLigne = createStatCard("🟢", "En Ligne", "0", "#0673aded", "#d7d8da");
+        VBox cardHorsLigne = createStatCard("🔴", "Hors Ligne", "0", "#0673aded", "#dbdbde");
         VBox cardTotal = createStatCard("➕", "Total Utilisateurs", "0", "#0673aded", "#d2d2d4");
 
         // RÉCUPÉRATION DES LABELS (bien positionnés)
@@ -88,16 +86,19 @@ public class AdminDashboardView extends BorderPane {
         lblTotalAdmins = (Label) ((HBox) cardAdmins.getChildren().get(0)).getChildren().get(1);
         lblVotants = (Label) ((HBox) cardVotants.getChildren().get(0)).getChildren().get(1);
         lblNonVotants = (Label) ((HBox) cardNonVotants.getChildren().get(0)).getChildren().get(1);
+        lblEnLigne = (Label) ((HBox) cardEnLigne.getChildren().get(0)).getChildren().get(1);
+        lblHorsLigne = (Label) ((HBox) cardHorsLigne.getChildren().get(0)).getChildren().get(1);
         lblTotal = (Label) ((HBox) cardTotal.getChildren().get(0)).getChildren().get(1);
 
         // AJOUT DANS LA GRILLE
         statsGrid.add(cardEtudiants, 0, 0);
         statsGrid.add(cardEnseignants, 1, 0);
         statsGrid.add(cardAdmins, 2, 0);
-        statsGrid.add(cardVotants, 0, 1);
-        statsGrid.add(cardNonVotants, 1, 1);
-        statsGrid.add(cardTotal, 2, 1);
-
+        statsGrid.add(cardVotants, 3, 0);
+        statsGrid.add(cardNonVotants, 0, 1);
+        statsGrid.add(cardEnLigne, 1, 1);
+        statsGrid.add(cardHorsLigne, 2, 1);
+        statsGrid.add(cardTotal, 3, 1);
         // SECTION ACTIONS
         HBox actionsHeader = new HBox();
         actionsHeader.setAlignment(Pos.CENTER_LEFT);
@@ -122,69 +123,41 @@ public class AdminDashboardView extends BorderPane {
         actionsGrid.setVgap(20);
         actionsGrid.setAlignment(Pos.CENTER);
         actionsGrid.setPadding(new Insets(0, 0, 10, 0));
-
+        
         ColumnConstraints actionCol1 = new ColumnConstraints();
         actionCol1.setPercentWidth(50);
         ColumnConstraints actionCol2 = new ColumnConstraints();
         actionCol2.setPercentWidth(50);
         actionsGrid.getColumnConstraints().addAll(actionCol1, actionCol2);
 
-        btnGestionElecteurs = new Button( "👤 Gérer les electeurs");
-        btnGestionEnseignantFiliere = new Button("👤 Gérer les enseignant");
+        btnGestionElecteurs = new Button("👤 Gérer les électeurs");
         btnGestionAdministrateurs = new Button("👤 Gérer les administrateurs");
-        btnGestionCandidat = new Button("👤 Gérer les candidats");
-        btnGestionElection = new Button("🏛️ Gérer les scrutins");
-        btnGestionUfr = new Button("🏛️ Gérer les UFRs");
-        btnGestionDepartement = new Button("🏛️ Gérer les départements");
-        btnGestionFiliere = new Button("🏛️ Gérer les filières");
-        btnStatistiques = new Button("📊 Voir les Statistiques");
-        btnRetourConnexion = new Button("↩ Se déconnecter");
+        btnStatistiques = new Button("📊 Voir les statistiques");
+        btnRetourConnexion = new Button("↩️ Se déconnecter");
 
         actionsGrid.add(createActionCard(btnGestionElecteurs, 
             "👤 Gestion des électeurs",
             "Ajouter, modifier, supprimer et rechercher des électeurs",
             "#cc4c2c"), 0, 0);
-        actionsGrid.add(createActionCard(btnGestionEnseignantFiliere, 
-            "👤 Gestion des enseignants",
-            "Ajouter, modifier, supprimer et rechercher des enseignants",
-            "#cc4c2c"), 1, 0);
+            
         actionsGrid.add(createActionCard(btnGestionAdministrateurs,
-            "👤 Gestion des administrateurs", 
-            "Ajouter,Modifier ou Supprimer un administrateur",
-            "#10b981"), 2, 0);
-        actionsGrid.add(createActionCard(btnGestionCandidat, 
-            "👤 Gestion des candidats", 
-            "Ajouter,Modifier,Supprimer ou Rechercher un candidat un candidat",
-            "#103db9"), 0, 1);
-        actionsGrid.add(createActionCard(btnGestionElection, 
-            "🏛️ Gestion des scrutins", 
-            "Ajouter un scrutin",
-            "#d3116c"), 1, 1);
-        actionsGrid.add(createActionCard(btnGestionUfr, 
-            "🏛️ Gestion des UFRs", 
-            "Ajouter, Modifier, Rechercher ou Supprimer une ufr",
-            "#15f5f5"), 2, 1);
-        actionsGrid.add(createActionCard(btnGestionDepartement, 
-            "🏛️ Gestion des département", 
-            "Ajouter, Modifier, Rechercher ou Supprimer un département", 
-            "#69539c"), 0, 2);
-        actionsGrid.add(createActionCard(btnGestionFiliere, 
-            "🏛️ Gestion des filières", 
-            "Ajouter, Modifier, Rechercher ou supprimer une filière", 
-            "#ac820f"), 1, 2);
-        actionsGrid.add(createActionCard(btnStatistiques, 
-            "Statistiques", 
-            "📊 Consulter les indicateurs",
-            "#f59e0b"), 2, 2);
-        actionsGrid.add(createActionCard(btnRetourConnexion, 
-            "↩ Retour à la connexion", 
-            "Revenir à l'écran d'authentification", 
-            "#6b7280"), 1, 3);
+            "👤 Gestion des administrateurs",
+            "Ajouter ou supprimer des administrateurs de la plateforme",
+            "#cc4c2c"), 1, 0);
+            
+        actionsGrid.add(createActionCard(btnStatistiques,
+            "📊 Statistiques",
+            "Consulter les indicateurs et rapports détaillés",
+            "#cc4c2c"), 0, 1);
+            
+        actionsGrid.add(createActionCard(btnRetourConnexion,
+            "↩️ Retour à la connexion",
+            "Revenir à l'écran d'authentification",
+            "#cc4c2c"), 1, 1);
 
         content.getChildren().addAll(header, statsGrid, actionsHeader, actionsGrid);
         this.setCenter(content);
     }
-
     // CARTE STATISTIQUE
     
     private VBox createStatCard(String icon, String label, String value, String color, String bgColor) {
@@ -294,28 +267,37 @@ public class AdminDashboardView extends BorderPane {
         card.getChildren().addAll(titleLabel, descLabel, actionButton);
         return card;
     }
-    
+
     // MISE À JOUR DES STATISTIQUES
     
-    public void updateStats(int etudiants, int enseignants, int admins, int votants, int nonVotants) {
+    public void updateStats(int etudiants, int enseignants, int admins, 
+                            int votants, int nonVotants, int enLigne, int horsLigne) {
         lblTotalEtudiants.setText(String.valueOf(etudiants));
         lblTotalEnseignants.setText(String.valueOf(enseignants));
         lblTotalAdmins.setText(String.valueOf(admins));
         lblVotants.setText(String.valueOf(votants));
         lblNonVotants.setText(String.valueOf(nonVotants));
+        lblEnLigne.setText(String.valueOf(enLigne));
+        lblHorsLigne.setText(String.valueOf(horsLigne));
+        
         int total = etudiants + enseignants + admins;
         lblTotal.setText(String.valueOf(total));
     }
 
     // GETTERS
-    public Button getBtnGestionUtilisateurs() { return btnGestionElecteurs; }
-    public Button getBtnGestionEnseignantFiliere() { return btnGestionEnseignantFiliere; }
-    public Button getBtnGestionAdministrateurs() { return btnGestionAdministrateurs; }
-    public Button getBtnGestionCandidads() { return btnGestionCandidat; }
-    public Button getBtnGestionElections() { return btnGestionElection; }
-    public Button getBtnGestionUfrs() { return btnGestionUfr; }
-    public Button getBtnGestionDepartements() { return btnGestionDepartement; }
-    public Button getBtnGestionFilieres() { return btnGestionFiliere; }
-    public Button getBtnStatistiques() { return btnStatistiques; }
-    public Button getBtnRetourConnexion() { return btnRetourConnexion; }
+    public Button getBtnGestionUtilisateurs() {
+        return btnGestionElecteurs;
+    }
+
+    public Button getBtnGestionAdministrateurs() {
+        return btnGestionAdministrateurs;
+    }
+
+    public Button getBtnStatistiques() {
+        return btnStatistiques;
+    }
+
+    public Button getBtnRetourConnexion() {
+        return btnRetourConnexion;
+    }
 }

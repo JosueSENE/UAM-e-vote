@@ -1,8 +1,6 @@
 package app.controller;
 
 import app.dao.UserDAO;
-import app.dao.VoteDAO;
-import app.dao.AdminDAO;
 import app.view.AdminDashboardView;
 import app.view.LoginView;            
 import app.view.StatisticsView; 
@@ -17,29 +15,17 @@ import java.sql.SQLException;
 public class AdminDashboardController extends BorderPane {
 
     private final AdminDashboardView view;
-    private final VoteDAO voteDAO;
-    private final AdminDAO adminDAO;
     private final UserDAO userDAO;
-    
 
     public AdminDashboardController() {
         this.view = new AdminDashboardView();
-        
-        // ✅ CORRECT : Initialisation de TOUS les DAO pour éviter les NullPointerException
         this.userDAO = new UserDAO();
-        this.voteDAO = new VoteDAO();
-        this.adminDAO = new AdminDAO();  
+        
         this.setCenter(this.view);
 
         // Liaison des actions sur les boutons de la vue
-        this.view.getBtnGestionUtilisateurs().setOnAction(e -> ouvrirGestionElecteurs());
-        this.view.getBtnGestionEnseignantFiliere().setOnAction(e -> ouvrirGestionEnseignant());
+        this.view.getBtnGestionUtilisateurs().setOnAction(e -> ouvrirGestionUtilisateurs());
         this.view.getBtnGestionAdministrateurs().setOnAction(e -> ouvrirGestionAdministrateurs());
-        this.view.getBtnGestionCandidads().setOnAction(e -> ouvrirGestionCandidats()); 
-        this.view.getBtnGestionElections().setOnAction(e -> ouvrirGestionElections());    
-        this.view.getBtnGestionUfrs().setOnAction(e -> ouvrirGestionUfrs());
-        this.view.getBtnGestionDepartements().setOnAction(e -> ouvrirGestionDepartements()); 
-        this.view.getBtnGestionFilieres().setOnAction(e -> ouvrirGestionFilieres());                
         this.view.getBtnStatistiques().setOnAction(e -> ouvrirStatistiques());
         this.view.getBtnRetourConnexion().setOnAction(e -> retourConnexion());
         
@@ -50,18 +36,32 @@ public class AdminDashboardController extends BorderPane {
     // ==========================================
     // ✅ CHARGEMENT DES STATISTIQUES
     // ==========================================
+    
+    /**
+     * Charge les statistiques depuis la base de données et met à jour la vue
+     */
     private void chargerStatistiques() {
         try {
+            // Récupérer les statistiques via le DAO
+            UserDAO.DashboardStats stats = userDAO.getDashboardStats();
+            
             // Mettre à jour la vue avec les données réelles
             view.updateStats(
-                userDAO.getTotalEtudiants(),
-                userDAO.getTotalEnseignants(),
-                adminDAO.getTotalAdmins(),
-                voteDAO.getVotants(),
-                voteDAO.getNonVotants()
+                stats.totalEtudiants,
+                stats.totalEnseignants,
+                stats.totalAdmins,
+                stats.votants,
+                stats.nonVotants,
+                stats.enLigne,
+                stats.horsLigne
             );
             
             System.out.println("✅ Statistiques chargées avec succès !");
+            System.out.println("   - Étudiants : " + stats.totalEtudiants);
+            System.out.println("   - Enseignants : " + stats.totalEnseignants);
+            System.out.println("   - Admins : " + stats.totalAdmins);
+            System.out.println("   - Votants : " + stats.votants);
+            System.out.println("   - Non votants : " + stats.nonVotants);
             
         } catch (SQLException e) {
             System.err.println("❌ Erreur lors du chargement des statistiques : " + e.getMessage());
@@ -73,6 +73,9 @@ public class AdminDashboardController extends BorderPane {
         }
     }
 
+    /**
+     * Rafraîchit les statistiques (peut être appelé après une modification)
+     */
     public void rafraichirStatistiques() {
         chargerStatistiques();
     }
@@ -82,14 +85,15 @@ public class AdminDashboardController extends BorderPane {
     // ==========================================
 
     /**
-     * Ouvre l'interface de gestion des Électeurs.
+     * Ouvre l'interface de gestion des utilisateurs (Électeurs).
      */
-
-    private void ouvrirGestionElecteurs() {
+    private void ouvrirGestionUtilisateurs() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
-            AdminUsersController adminController = new AdminUsersController();
+            
+            AdminController adminController = new AdminController();
             Scene scene = new Scene(adminController, 1400, 700); 
+            
             stage.setTitle("UAM e-Vote - Gestion des Électeurs");
             stage.setScene(scene);
             stage.centerOnScreen();
@@ -100,32 +104,15 @@ public class AdminDashboardController extends BorderPane {
     }
 
     /**
-     * Ouvre l'interface de gestion des Enseignants.
+     * Ouvre l'interface de gestion des administrateurs.
      */
-
-    private void ouvrirGestionEnseignant() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminEnseignantController adminEnseignantController = new AdminEnseignantController();
-            Scene scene = new Scene(adminEnseignantController, 1400, 700); 
-            stage.setTitle("UAM e-Vote - Gestion des Enseignant");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            afficherMessage("Erreur", "Impossible d'ouvrir la gestion des enseignants.");
-        }
-    }
-
-    /**
-     * Ouvre l'interface de gestion des Administrateurs.
-     */
-
     private void ouvrirGestionAdministrateurs() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
-            AdminManagementController adminManagementController = new AdminManagementController(stage);
+            
+            AdminManagementController adminManagementController = new AdminManagementController();
             Scene scene = new Scene(adminManagementController, 1400, 700);
+
             stage.setTitle("UAM e-Vote - Gestion des administrateurs");
             stage.setScene(scene);
             stage.centerOnScreen();
@@ -136,118 +123,35 @@ public class AdminDashboardController extends BorderPane {
     }
 
     /**
-     * Ouvre l'interface de gestion des Candidats.
+     * Ouvre l'interface des statistiques.
      */
-
-    private void ouvrirGestionCandidats() { 
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminCandidatController adminCandidatController = new AdminCandidatController();
-            Scene scene = new Scene(adminCandidatController, 1400, 700); 
-            stage.setTitle("UAM e-Vote - Gestion des Candidats");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            afficherMessage("Erreur", "Impossible d'ouvrir la gestion des Candidats.");
-        }
-    }
-
-    /**
-     * Ouvre l'interface de gestion des Élections.
-     */
-    
-    private void ouvrirGestionElections() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminElectionController adminElectionController = new AdminElectionController();
-            Scene scene = new Scene(adminElectionController, 1400, 700); 
-            stage.setTitle("UAM e-Vote - Gestion des Élections");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            afficherMessage("Erreur", "Impossible d'ouvrir la gestion des élections.");
-        }
-    }
-
-    /**
-    * Ouvre l'interface de gestion des UFRs.
-    */
-
-    private void ouvrirGestionUfrs() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminUfrController adminUfrController = new AdminUfrController();
-            Scene scene = new Scene(adminUfrController, 1400, 700); 
-            stage.setTitle("UAM e-Vote - Gestion des UFRs");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            afficherMessage("Erreur", "Impossible d'ouvrir la gestion des ufrs.");
-        }
-    }
-
-    /**
-    * Ouvre l'interface de gestion des Départements.
-    */
-
-    private void ouvrirGestionDepartements() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminDepartementController adminDepartementController = new AdminDepartementController();
-            Scene scene = new Scene(adminDepartementController, 1400, 700); 
-            stage.setTitle("UAM e-Vote - Gestion des Départemetents");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            afficherMessage("Erreur", "Impossible d'ouvrir la gestion des Départements.");
-        }
-    }
-
-    /**
-    * Ouvre l'interface de gestion des Filières.
-    */
-
-    private void ouvrirGestionFilieres() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminFiliereController adminFiliereController = new AdminFiliereController();
-            Scene scene = new Scene(adminFiliereController, 1400, 700); 
-            stage.setTitle("UAM e-Vote - Gestion des Filière");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            afficherMessage("Erreur", "Impossible d'ouvrir la gestion des Filières.");
-        }
-    }
-
-    /**
-     * Ouvre l'interface de gestion des Statistiques.
-     */
-
     private void ouvrirStatistiques() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
             StatisticsView statisticsView = new StatisticsView();
+            
+            new StatisticsController(statisticsView);
+            
             Scene scene = new Scene(statisticsView, 1400, 700);
             stage.setTitle("UAM e-Vote - Statistiques");
             stage.setScene(scene);
             stage.centerOnScreen();
         } catch (Exception e) {
             e.printStackTrace();
-            afficherMessage("Erreur", "Impossible d'ouvrir l'interface des statistiques.");
+            afficherMessage("Erreur", "Impossible d'ouvrir les statistiques.");
         }
     }
 
+    /**
+     * Déconnexion et retour à la mire de login.
+     */
     private void retourConnexion() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
+            
             LoginView loginView = new LoginView();
-            new LoginController(loginView);
+            LoginController loginController = new LoginController(loginView);
+            
             Scene scene = new Scene(loginView, 1400, 700);
             stage.setTitle("UAM e-Vote - Connexion");
             stage.setScene(scene);
@@ -261,6 +165,7 @@ public class AdminDashboardController extends BorderPane {
     // ==========================================
     // UTILITAIRES
     // ==========================================
+    
     private void afficherMessage(String titre, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titre);

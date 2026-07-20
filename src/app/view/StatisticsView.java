@@ -61,7 +61,7 @@ public class StatisticsView extends BorderPane {
 
         // Style commun pour les cartes blanches contenant les graphiques
         String cardStyle = "-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 20; "
-                        + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);";
+                         + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);";
 
         // 1. Configuration du PieChart (Participation)
         VBox cardPie = new VBox(10);

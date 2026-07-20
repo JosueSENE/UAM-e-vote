@@ -31,7 +31,7 @@ public class LoginView extends BorderPane {
         // ============== LOGO UAM ==============
         ImageView logoView = new ImageView();
         try{
-            Image logo = new Image(getClass().getResourceAsStream("/ressources/logo_uam.png"));
+            Image logo = new Image(getClass().getResourceAsStream("/logo_uam.png"));
             logoView.setImage(logo);
             // Ajustement de la taille du logo
             logoView.setFitWidth(200);
@@ -64,7 +64,7 @@ public class LoginView extends BorderPane {
         Label lblEmail = new Label("Adresse Email Institutionnelle");
         lblEmail.setStyle("-fx-font-weight: bold; -fx-text-fill: #555;");
         txtEmail = new TextField();
-        txtEmail.setPromptText("Ex: prenom.nom@uam.edu.sn");
+        txtEmail.setPromptText("Ex: nicolo.zaniolo@uam.edu.sn");
         txtEmail.setPrefHeight(40);
         txtEmail.setStyle("-fx-background-radius: 5; -fx-border-color: #ddd; -fx-border-radius: 5;");
         emailBox.getChildren().addAll(lblEmail, txtEmail);
@@ -79,7 +79,7 @@ public class LoginView extends BorderPane {
         txtSecret.setPrefHeight(40);
         txtSecret.setStyle("-fx-background-radius: 5; -fx-border-color: #ddd; -fx-border-radius: 5;");
         secretBox.getChildren().addAll(lblSecret, txtSecret);
-        
+
         // Bouton Connexion
         btnConnexion = new Button("Se connecter");
         btnConnexion.setMaxWidth(Double.MAX_VALUE);
