@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le : ven. 17 juil. 2026 à 02:23
+-- Généré le : mer. 22 juil. 2026 à 01:46
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -22,6 +22,7 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `uam_evote` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `uam_evote`;
+
 -- --------------------------------------------------------
 
 --
@@ -36,6 +37,13 @@ CREATE TABLE `admin` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `admin`
+--
+
+INSERT INTO `admin` (`id`, `code_permanent`, `nom`, `prenom`, `email`, `password`) VALUES
+(2, 502291, 'SENE', 'Josue Guilaye', 'sene.josue@uam.edu.sn', '12588008df3277ec5638851975fa66da3266e42b13e50acb7ce7f5cf777a4000');
 
 -- --------------------------------------------------------
 
@@ -63,6 +71,13 @@ CREATE TABLE `departements` (
   `nom` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Déchargement des données de la table `departements`
+--
+
+INSERT INTO `departements` (`id`, `ufr_id`, `nom`) VALUES
+(1, 1, 'MPI');
+
 -- --------------------------------------------------------
 
 --
@@ -79,7 +94,8 @@ CREATE TABLE `elections` (
   `cible_ufr_id` int(11) DEFAULT NULL,
   `cible_departement_id` int(11) DEFAULT NULL,
   `cible_filiere_id` int(11) DEFAULT NULL,
-  `cibe_niveau` enum('L1','L2','L3','M1','M2') DEFAULT NULL
+  `cibe_niveau` enum('L1','L2','L3','M1','M2') DEFAULT NULL,
+  `cible_profession` enum('ETUDIANTS','ENSEIGNANTS') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -105,6 +121,14 @@ CREATE TABLE `filieres` (
   `nom` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Déchargement des données de la table `filieres`
+--
+
+INSERT INTO `filieres` (`id`, `departement_id`, `nom`) VALUES
+(1, 1, 'Informatique'),
+(2, 1, 'physique');
+
 -- --------------------------------------------------------
 
 --
@@ -115,6 +139,16 @@ CREATE TABLE `ufr` (
   `id` int(11) NOT NULL,
   `nom` enum('POLYTECHNIQUE','UFR SEG','UFR STA','UFR TECNA') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `ufr`
+--
+
+INSERT INTO `ufr` (`id`, `nom`) VALUES
+(2, 'POLYTECHNIQUE'),
+(3, 'UFR SEG'),
+(1, 'UFR STA'),
+(4, 'UFR TECNA');
 
 -- --------------------------------------------------------
 
@@ -133,6 +167,13 @@ CREATE TABLE `users` (
   `filiere_id` int(11) NOT NULL,
   `niveau` enum('L1','L2','L3','M1','M2') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `users`
+--
+
+INSERT INTO `users` (`id`, `code_permanent`, `nom`, `prenom`, `email`, `password`, `profession`, `filiere_id`, `niveau`) VALUES
+(2, 502290, 'Sene', 'Josue Guilaye', 'sene.guilaye@uam.edu.sn', '9548a069f7bce0ced4b3348363a3d9cb5cb098d2d8901c6269b770156f431dda', 'ENSEIGNANT', 1, 'L3');
 
 -- --------------------------------------------------------
 
@@ -235,7 +276,7 @@ ALTER TABLE `votes`
 -- AUTO_INCREMENT pour la table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `candidats`
@@ -247,31 +288,31 @@ ALTER TABLE `candidats`
 -- AUTO_INCREMENT pour la table `departements`
 --
 ALTER TABLE `departements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `elections`
 --
 ALTER TABLE `elections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT pour la table `filieres`
 --
 ALTER TABLE `filieres`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `ufr`
 --
 ALTER TABLE `ufr`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT pour la table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `votes`

@@ -5,6 +5,7 @@ import java.util.List;
 import app.dao.DepartementDAO;
 import app.model.Departement;
 import app.view.AdminDepartementView;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -46,7 +47,7 @@ public class AdminDepartementController extends BorderPane {
         // Liaison des composants
         this.tableDepartement = this.view.getTableDepartement();
         this.txtSearch = this.view.getTxtSearch();
-        this.txtId = this.view.getTxtId(); // Corrected: linked txtId
+        this.txtId = this.view.getTxtId(); 
         this.txtNom = this.view.getTxtNom();
         this.txtUfrId = this.view.getTxtUfrId();
         this.btnAjouter = this.view.getBtnAjouter();

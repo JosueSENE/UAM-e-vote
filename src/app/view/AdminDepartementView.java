@@ -170,7 +170,6 @@ public class AdminDepartementView extends BorderPane {
         col2.setPercentWidth(50);
         gridButtons.getColumnConstraints().addAll(col1, col2);
 
-        // Corrected: fieldUfrId is now included in the layout
         formBox.getChildren().addAll(lblFormTitle, new Separator(), fieldId, fieldNom, fieldUfrId, new Separator(), gridButtons);
 
         HBox rightBox = new HBox(formBox);

@@ -24,14 +24,12 @@ public class AdminDashboardController extends BorderPane {
 
     public AdminDashboardController() {
         this.view = new AdminDashboardView();
-        
-        // ✅ CORRECT : Initialisation de TOUS les DAO pour éviter les NullPointerException
+    
         this.userDAO = new UserDAO();
         this.voteDAO = new VoteDAO();
         this.adminDAO = new AdminDAO();  
         this.setCenter(this.view);
 
-        // Liaison des actions sur les boutons de la vue
         this.view.getBtnGestionUtilisateurs().setOnAction(e -> ouvrirGestionElecteurs());
         this.view.getBtnGestionEnseignantFiliere().setOnAction(e -> ouvrirGestionEnseignant());
         this.view.getBtnGestionAdministrateurs().setOnAction(e -> ouvrirGestionAdministrateurs());
@@ -231,8 +229,8 @@ public class AdminDashboardController extends BorderPane {
     private void ouvrirStatistiques() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
-            StatisticsController statisticsController = new StatisticsController();
-            Scene scene = new Scene(statisticsController, 1400, 700);
+            StatistiqueController statistiqueController = new StatistiqueController();
+            Scene scene = new Scene(statistiqueController, 1400, 700);
             
             stage.setTitle("UAM e-Vote - Statistiques");
             stage.setScene(scene);
