@@ -9,30 +9,36 @@ import java.util.List;
 
 public class UfrDAO {
 
-    // AJOUTER UNE UFR
+    // ===================== CRUD ==============================
 
-    public void addUfr( Ufr u) throws SQLException{
+    // AJOUTER UNE UFR (Retourne true si l'ajout a réussi)
+
+    public boolean addUfr(Ufr u) {
         String sql = "INSERT INTO ufr (nom) VALUES (?)";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)){
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getNom());
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de l'insertion de l'UFR "+u.getNom());
-            else System.err.println("Succés : UFR "+u.getNom()+" ajoutée dans la base de données");
+            
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Succès : UFR " + u.getNom() + " ajoutée dans la base de données");
+                return true;
+            }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion de l'UFR "+u.getNom());
+            System.err.println("Erreur lors de l'insertion de l'UFR " + u.getNom());
             e.printStackTrace();
         }
+        return false;
     }
 
     // RECHERCHER UNE UFR PAR SON id
 
-    public Ufr searchUfr (int id){
-        String sql = "SELECT * FROM ufr WHERE id=?";
+    public Ufr searchUfr(int id) {
+        String sql = "SELECT * FROM ufr WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql)){
-            ps.setInt(1,id);
-            try (ResultSet rs = ps.executeQuery()){
-                if(rs.next()){
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
                     Ufr u = new Ufr();
                     u.setId(rs.getInt("id"));
                     u.setNom(rs.getString("nom"));
@@ -40,62 +46,69 @@ public class UfrDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche de l'UFR n° "+ id);
+            System.err.println("Erreur lors de la recherche de l'UFR n° " + id);
             e.printStackTrace();
         }
         return null;
     }
 
-    //  RECUPERER TOUS LES UFRs
-
-    public List<Ufr> getAllUfr() throws SQLException{
+    // RECUPERER TOUTES LES UFRs
+    
+    public List<Ufr> getAllUfr() {
         List<Ufr> liste = new ArrayList<>();
         String sql = "SELECT * FROM ufr ORDER BY id DESC";
         try (Connection conn = DBConnection.getConnection();
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)){
-            while (rs.next()){
+            ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
                 Ufr u = new Ufr();
                 u.setId(rs.getInt("id"));
                 u.setNom(rs.getString("nom"));
                 liste.add(u);
             }       
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récuperation des UFRs : ");
+            System.err.println("Erreur lors de la récupération des UFRs");
             e.printStackTrace();
         }
         return liste;
     }
 
-    //  MODIFIER UNE UFR
+    // MODIFIER UNE UFR (Retourne true si la modification a réussi)
 
-    public void updateUfr(Ufr u) throws SQLException{
-        String sql = "UPDADE ufr SET nom=? WHERE id=?";
+    public boolean updateUfr(Ufr u) {
+        String sql = "UPDATE ufr SET nom = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)){
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, u.getNom());
             ps.setInt(2, u.getId());
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec de la mise à jour de l'UFR "+u.getNom());
-            else System.err.println("Succés : UFR "+u.getNom()+" modifiée dans la base de données");
+            
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Succès : UFR " + u.getNom() + " modifiée dans la base de données");
+                return true;
+            }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour de l'UFR "+u.getNom());
+            System.err.println("Erreur lors de la mise à jour de l'UFR " + u.getNom());
             e.printStackTrace();
         }
+        return false;
     }
 
-    //  SUPPRIMER UNE UFR
+    // SUPPRIMER UNE UFR (Retourne true si la suppression a réussi)
 
-    public void deleteUfr (int id) throws SQLException {
-        String sql = "DELETE FROM ufr WHERE id=?";
+    public boolean deleteUfr(int id) {
+        String sql = "DELETE FROM ufr WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)){
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
-            if (ps.executeUpdate() ==  0) throw new SQLException("Echec lors de la suppression de l'UFR n° "+id);
-            else System.err.println("Succés: UFR "+id+" supprimée dans la base de données ");
+            
+            if (ps.executeUpdate() > 0) {
+                System.out.println("Succès : UFR n° " + id + " supprimée dans la base de données");
+                return true;
+            }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression de l'UFR "+id);
+            System.err.println("Erreur lors de la suppression de l'UFR " + id);
             e.printStackTrace();
         }
+        return false;
     }
-
 }

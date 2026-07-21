@@ -1,10 +1,9 @@
 package app.view;
 
-import app.model.User;
+import app.model.Ufr;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -22,21 +21,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class AdminView extends BorderPane {
+public class AdminUfrView extends BorderPane {
 
-    private TableView<User> tableUsers;
-    private TableColumn<User, Integer> colCodePermanent;
-    private TableColumn<User, String> colNom;
-    private TableColumn<User, String> colPrenom;
-    private TableColumn<User, String> colEmail;
-    private TableColumn<User, String> colProfession;
+    private TableView<Ufr> tableUfr;
+    private TableColumn<Ufr, Integer> colId;
+    private TableColumn<Ufr, String> colNom;
 
     private TextField txtSearch;
-    private TextField txtCodePermanent;
+    private TextField txtId;
     private TextField txtNom;
-    private TextField txtPrenom;
-    private TextField txtEmail;
-    private ComboBox<String> comboProfession;
 
     private Button btnAjouter;
     private Button btnModifier;
@@ -44,7 +37,7 @@ public class AdminView extends BorderPane {
     private Button btnVider;
     private Button btnRetour;
 
-    public AdminView() {
+    public AdminUfrView() {
         this.setPadding(new Insets(20));
         this.setStyle("-fx-background-color: #f8f9fa;");
         initLeftTableSection();
@@ -64,7 +57,7 @@ public class AdminView extends BorderPane {
         btnRetour.setOnMouseEntered(e -> btnRetour.setCursor(javafx.scene.Cursor.HAND));
         btnRetour.setOnMouseExited(e -> btnRetour.setCursor(javafx.scene.Cursor.DEFAULT));
 
-        Label lblTitle = new Label("Gestion des Électeurs");
+        Label lblTitle = new Label("Gestion des UFRs");
         lblTitle.setFont(Font.font("System", FontWeight.BOLD, 22));
         lblTitle.setStyle("-fx-text-fill: #005088;");
 
@@ -74,7 +67,7 @@ public class AdminView extends BorderPane {
         Label lblSearch = new Label("Rechercher : ");
         lblSearch.setStyle("-fx-font-weight: bold;");
         txtSearch = new TextField();
-        txtSearch.setPromptText("Nom, prénom, code permanent...");
+        txtSearch.setPromptText("Id ou Nom");
         txtSearch.setPrefWidth(200);
         txtSearch.setStyle("-fx-background-radius: 15;");
 
@@ -83,29 +76,21 @@ public class AdminView extends BorderPane {
 
         headerBox.getChildren().addAll(btnRetour, lblTitle, spacer, searchBox);
 
-        tableUsers = new TableView<>();
-        tableUsers.setPlaceholder(new Label("Aucun contenu dans la table"));
-        tableUsers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableUsers.setPrefHeight(550);
+        tableUfr = new TableView<>();
+        tableUfr.setPlaceholder(new Label("Aucun contenu dans la table"));
+        tableUfr.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableUfr.setPrefHeight(550);
 
-        colCodePermanent = new TableColumn<>("Code Permanent");
-        colCodePermanent.setCellValueFactory(new PropertyValueFactory<>("codePermanent"));
+        colId = new TableColumn<>("Id");
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
 
         colNom = new TableColumn<>("Nom");
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
 
-        colPrenom = new TableColumn<>("Prénom");
-        colPrenom.setCellValueFactory(new PropertyValueFactory<>("prenom"));
+        tableUfr.getColumns().add(colId);
+        tableUfr.getColumns().add(colNom);
 
-        colEmail = new TableColumn<>("Email");
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-
-        colProfession = new TableColumn<>("Profession");
-        colProfession.setCellValueFactory(new PropertyValueFactory<>("profession"));
-
-        tableUsers.getColumns().addAll(colCodePermanent, colNom, colPrenom, colEmail, colProfession);
-
-        leftBox.getChildren().addAll(headerBox, tableUsers);
+        leftBox.getChildren().addAll(headerBox, tableUfr);
         this.setCenter(leftBox);
     }
 
@@ -117,40 +102,18 @@ public class AdminView extends BorderPane {
                 "-fx-background-radius: 10; " +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 4);");
 
-        Label lblFormTitle = new Label("Informations Électeur");
+        Label lblFormTitle = new Label("Informations UFR");
         lblFormTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
         lblFormTitle.setStyle("-fx-text-fill: #333;");
 
-        txtCodePermanent = new TextField();
-        txtCodePermanent.setPromptText("Ex: 501699");
-        txtCodePermanent.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) {
-                txtCodePermanent.setText(newValue.replaceAll("[^\\d]", ""));
-            }
-            if (txtCodePermanent.getText().length() > 6) {
-                String s = txtCodePermanent.getText().substring(0, 6);
-                txtCodePermanent.setText(s);
-            }
-        });
-        VBox fieldCodePermanent = createFormField("Code Permanent  :", txtCodePermanent);
+        txtId = new TextField();
+        txtId.setPromptText("Auto-généré");
+        txtId.setEditable(false);
+        VBox fieldId = createFormField("Id :", txtId);
 
         txtNom = new TextField();
-        txtNom.setPromptText("Ex: Ndiaye");
+        txtNom.setPromptText("Ex: SAT");
         VBox fieldNom = createFormField("Nom :", txtNom);
-
-        txtPrenom = new TextField();
-        txtPrenom.setPromptText("Ex: Nicolo Zaniolo");
-        VBox fieldPrenom = createFormField("Prénom :", txtPrenom);
-
-        txtEmail = new TextField();
-        txtEmail.setPromptText("zaniolo.nicolo@uam.edu.sn");
-        VBox fieldEmail = createFormField("Email :", txtEmail);
-
-        comboProfession = new ComboBox<>();
-        comboProfession.getItems().addAll("ADMINISTRATION", "ETUDIANT", "ENSEIGNANT");
-        comboProfession.setPromptText("Sélectionner la Profession");
-        comboProfession.setMaxWidth(Double.MAX_VALUE);
-        VBox fieldProfession = createFormField("Profession :", comboProfession);
 
         GridPane gridButtons = new GridPane();
         gridButtons.setHgap(10);
@@ -187,7 +150,7 @@ public class AdminView extends BorderPane {
         col2.setPercentWidth(50);
         gridButtons.getColumnConstraints().addAll(col1, col2);
 
-        formBox.getChildren().addAll(lblFormTitle, new Separator(), fieldCodePermanent, fieldNom, fieldPrenom, fieldEmail, fieldProfession, new Separator(), gridButtons);
+        formBox.getChildren().addAll(lblFormTitle, new Separator(), fieldId, fieldNom, new Separator(), gridButtons);
 
         HBox rightBox = new HBox(formBox);
         rightBox.setPadding(new Insets(10));
@@ -203,64 +166,18 @@ public class AdminView extends BorderPane {
         return vbox;
     }
 
-    public TableView<User> getTableUsers() {
-        return tableUsers;
-    }
-
-    public TextField getTxtSearch() {
-        return txtSearch;
-    }
-
-    public TextField getTxtCodePermanent() {
-        return txtCodePermanent;
-    }
-
-    public TextField getTxtNom() {
-        return txtNom;
-    }
-
-    public TextField getTxtPrenom() {
-        return txtPrenom;
-    }
-
-    public TextField getTxtEmail() {
-        return txtEmail;
-    }
-
-    public ComboBox<String> getComboProfession() {
-        return comboProfession;
-    }
-
-    public Button getBtnAjouter() {
-        return btnAjouter;
-    }
-
-    public Button getBtnModifier() {
-        return btnModifier;
-    }
-
-    public Button getBtnSupprimer() {
-        return btnSupprimer;
-    }
-
-    public Button getBtnVider() {
-        return btnVider;
-    }
-
-    public Button getBtnRetour() {
-        return btnRetour;
-    }
-
-    public void setCodePermanentEditable(boolean editable) {
-        txtCodePermanent.setDisable(!editable);
-    }
+    public TableView<Ufr> getTableUfr() { return tableUfr; }
+    public TextField getTxtSearch() { return txtSearch; }
+    public TextField getTxtId() { return txtId; }
+    public TextField getTxtNom() { return txtNom; }
+    public Button getBtnAjouter() { return btnAjouter; }
+    public Button getBtnModifier() { return btnModifier; }
+    public Button getBtnSupprimer() { return btnSupprimer; }
+    public Button getBtnVider() { return btnVider; }
+    public Button getBtnRetour() { return btnRetour; }
 
     public void clearFormFields() {
-        txtCodePermanent.clear();
-        setCodePermanentEditable(true);
+        txtId.clear();
         txtNom.clear();
-        txtPrenom.clear();
-        txtEmail.clear();
-        comboProfession.setValue(null);
     }
 }

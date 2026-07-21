@@ -1,121 +1,257 @@
 package app.model;
 
-public class User {
+public class User implements Connectable {
     private int id;
-    private Long code_permanent;      // ✅ Long pour supporter les grands nombres
+    private int codePermanent;
     private String nom;
     private String prenom;
     private String email;
+    private String login;
     private String password;
-    private String profession;
-    private Integer filiere_id;       // ✅ Integer pour supporter null
-    private String niveau;
-
-    // ==================== CONSTRUCTEURS ====================
+    private String role; // ETUDIANT, ENSEIGNANT, ADMIN
+    private Integer filiereId;
+    private String niveau; // L1, L2, L3, M1, M2
+    private Integer ufrId;
     
-    public User() {
-        // Constructeur par défaut
-    }
+    // Champs additionnels pour les jointures
+    private String filiereNom;
+    private String departementNom;
+    private String ufrNom;
 
-    public User(Long code_permanent, String nom, String prenom, String email, 
-                String password, String profession, Integer filiere_id, String niveau) {
-        this.code_permanent = code_permanent;
-        this.nom = nom;
-        this.prenom = prenom;
-        this.email = email;
-        this.password = password;
-        this.profession = profession;
-        this.filiere_id = filiere_id;
-        this.niveau = niveau;
-    }
+    // ==========================================
+    // CONSTRUCTEURS
+    // ==========================================
 
-    // ==================== GETTERS ET SETTERS ====================
+    public User() {}
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
+    public User(int id, String nom, String prenom, String email, String role) {
         this.id = id;
-    }
-
-    public Long getCode_permanent() {
-        return code_permanent;
-    }
-
-    public void setCode_permanent(Long code_permanent) {
-        this.code_permanent = code_permanent;
-    }
-
-    public String getNom() {
-        return nom;
-    }
-
-    public void setNom(String nom) {
         this.nom = nom;
-    }
-
-    public String getPrenom() {
-        return prenom;
-    }
-
-    public void setPrenom(String prenom) {
         this.prenom = prenom;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
         this.email = email;
+        this.role = role;
     }
 
-    public String getPassword() {
+    public User(int id, String nom, String prenom, String email, String login, String role) {
+        this.id = id;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.email = email;
+        this.login = login;
+        this.role = role;
+    }
+
+    // ==========================================
+    // GETTERS ET SETTERS
+    // ==========================================
+
+    public int getId() { 
+        return id; 
+    }
+    
+    public void setId(int id) { 
+        this.id = id; 
+    }
+
+    public int getCodePermanent() { 
+        return codePermanent; 
+    }
+    
+    public void setCodePermanent(int codePermanent) { 
+        this.codePermanent = codePermanent; 
+    }
+
+    public String getNom() { 
+        return nom; 
+    }
+    
+    public void setNom(String nom) { 
+        this.nom = nom; 
+    }
+
+    public String getPrenom() { 
+        return prenom; 
+    }
+    
+    public void setPrenom(String prenom) { 
+        this.prenom = prenom; 
+    }
+
+    public String getEmail() { 
+        return email; 
+    }
+    
+    public void setEmail(String email) { 
+        this.email = email; 
+    }
+
+    public String getLogin() { 
+        return login; 
+    }
+    
+    public void setLogin(String login) { 
+        this.login = login; 
+    }
+
+    public String getPassword() { 
+        return password; 
+    }
+    
+    public void setPassword(String password) { 
+        this.password = password; 
+    }
+
+    public String getRole() { 
+        return role; 
+    }
+    
+    public void setRole(String role) { 
+        this.role = role; 
+    }
+
+    public Integer getFiliereId() { 
+        return filiereId; 
+    }
+    
+    public void setFiliereId(Integer filiereId) { 
+        this.filiereId = filiereId; 
+    }
+
+    public String getNiveau() { 
+        return niveau; 
+    }
+    
+    public void setNiveau(String niveau) { 
+        this.niveau = niveau; 
+    }
+
+    public Integer getUfrId() { 
+        return ufrId; 
+    }
+    
+    public void setUfrId(Integer ufrId) { 
+        this.ufrId = ufrId; 
+    }
+
+    public String getFiliereNom() { 
+        return filiereNom; 
+    }
+    
+    public void setFiliereNom(String filiereNom) { 
+        this.filiereNom = filiereNom; 
+    }
+
+    public String getDepartementNom() { 
+        return departementNom; 
+    }
+    
+    public void setDepartementNom(String departementNom) { 
+        this.departementNom = departementNom; 
+    }
+
+    public String getUfrNom() { 
+        return ufrNom; 
+    }
+    
+    public void setUfrNom(String ufrNom) { 
+        this.ufrNom = ufrNom; 
+    }
+
+    // ==========================================
+    // MÉTHODES DE CONVENANCE (UTILITAIRES)
+    // ==========================================
+
+    /**
+     * Vérifie si l'utilisateur est un étudiant
+     */
+    public boolean isEtudiant() {
+        return "ETUDIANT".equals(role);
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un enseignant
+     */
+    public boolean isEnseignant() {
+        return "ENSEIGNANT".equals(role);
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un administrateur
+     */
+    public boolean isAdmin() {
+        return "ADMIN".equals(role);
+    }
+
+    /**
+     * Vérifie si l'utilisateur a déjà un mot de passe
+     */
+    public boolean hasPassword() {
+        return password != null && !password.trim().isEmpty();
+    }
+
+    /**
+     * Retourne le nom complet (prénom + nom)
+     */
+    public String getFullName() {
+        return prenom + " " + nom;
+    }
+
+    /**
+     * Retourne le nom complet formaté (nom + prénom)
+     */
+    public String getFullNameFormatted() {
+        return nom + " " + prenom;
+    }
+
+    // ==========================================
+    // IMPLÉMENTATION DE Connectable
+    // ==========================================
+
+    @Override
+    public String getCode_permanent() {
+        return String.valueOf(codePermanent);
+    }
+
+    @Override
+    public String getMotDePasse() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    @Override
+    public String getEmailAddress() {
+        return email;
     }
 
-    public String getProfession() {
-        return profession;
-    }
-
-    public void setProfession(String profession) {
-        this.profession = profession;
-    }
-
-    public Integer getFiliere_id() {
-        return filiere_id;
-    }
-
-    public void setFiliere_id(Integer filiere_id) {
-        this.filiere_id = filiere_id;
-    }
-
-    public String getNiveau() {
-        return niveau;
-    }
-
-    public void setNiveau(String niveau) {
-        this.niveau = niveau;
-    }
-
-    // ==================== MÉTHODES UTILITAIRES ====================
+    // ==========================================
+    // MÉTHODES OVERRIDE
+    // ==========================================
 
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", code_permanent=" + code_permanent +
+                ", codePermanent=" + codePermanent +
                 ", nom='" + nom + '\'' +
                 ", prenom='" + prenom + '\'' +
                 ", email='" + email + '\'' +
-                ", profession='" + profession + '\'' +
-                ", filiere_id=" + filiere_id +
+                ", login='" + login + '\'' +
+                ", role='" + role + '\'' +
                 ", niveau='" + niveau + '\'' +
+                ", filiereNom='" + filiereNom + '\'' +
+                ", ufrNom='" + ufrNom + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return id == user.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
     }
 }

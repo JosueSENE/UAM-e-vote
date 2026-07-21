@@ -3,7 +3,8 @@ module UAM_evote {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
-    requires transitive javafx.graphics; // Règle le problème de visibilité du Stage
+    requires transitive javafx.graphics;
+	requires java.desktop; // Règle le problème de visibilité du Stage
 
     // 2. Ouvrir les packages pour la réflexion (TableView et FXMLLoader)
     opens app to javafx.graphics, javafx.fxml;

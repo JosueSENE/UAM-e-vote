@@ -63,11 +63,12 @@ CREATE TABLE `filieres` (
 
 --
 -- Structure de la table `users`
+-- ✅ CORRIGÉ : code_permanent en INT(6) pour 6 chiffres
 --
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `code_permanent` BIGINT(20) NOT NULL,
+  `code_permanent` INT(6) NOT NULL,  -- ✅ Changé de BIGINT(20) à INT(6)
   `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
@@ -81,11 +82,12 @@ CREATE TABLE `users` (
 
 --
 -- Structure de la table `admin`
+-- ✅ CORRIGÉ : code_permanent en INT(6) pour 6 chiffres
 --
 
 CREATE TABLE `admin` (
   `id` int(11) NOT NULL,
-  `code_permanent` BIGINT(20) NOT NULL,
+  `code_permanent` INT(6) NOT NULL,  -- ✅ Changé de BIGINT(20) à INT(6)
   `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
@@ -424,95 +426,93 @@ INSERT INTO filieres (departement_id, nom) VALUES
 
 -- ==========================================
 -- 4. INSERTION DES UTILISATEURS (ÉTUDIANTS)
--- Codes permanents : commencent par 50 ou 60 + 6 chiffres
+-- Codes permanents : 6 chiffres entre 100000 et 999999
 -- ==========================================
 INSERT INTO users (code_permanent, nom, prenom, email, password, profession, filiere_id, niveau) VALUES 
 -- UFR STA - MIM (filiere_id 1, 2, 3)
-(50123456, 'DIALLO', 'Mamadou', 'mamadou.diallo@uam.edu.sn', NULL, 'ETUDIANT', 1, 'L1'),
-(50123457, 'NDIAYE', 'Aissatou', 'aissatou.ndiaye@uam.edu.sn', SHA2('MonMotDePasse123', 256), 'ETUDIANT', 2, 'M2'),
-(60123456, 'BA', 'Oumar', 'oumar.ba@uam.edu.sn', NULL, 'ETUDIANT', 3, 'L3'),
+(123456, 'DIALLO', 'Mamadou', 'mamadou.diallo@uam.edu.sn', NULL, 'ETUDIANT', 1, 'L1'),
+(123457, 'NDIAYE', 'Aissatou', 'aissatou.ndiaye@uam.edu.sn', SHA2('MonMotDePasse123', 256), 'ETUDIANT', 2, 'M2'),
+(234567, 'BA', 'Oumar', 'oumar.ba@uam.edu.sn', NULL, 'ETUDIANT', 3, 'L3'),
 
 -- UFR STA - SMU (filiere_id 4)
-(60123457, 'SOW', 'Fatou', 'fatou.sow@uam.edu.sn', SHA2('Fatou2026', 256), 'ETUDIANT', 4, 'M1'),
+(234568, 'SOW', 'Fatou', 'fatou.sow@uam.edu.sn', SHA2('Fatou2026', 256), 'ETUDIANT', 4, 'M1'),
 
 -- UFR SEG - Économie (filiere_id 5)
-(50123458, 'GUEYE', 'Aminata', 'aminata.gueye@uam.edu.sn', SHA2('Aminata123', 256), 'ETUDIANT', 5, 'L2'),
+(345678, 'GUEYE', 'Aminata', 'aminata.gueye@uam.edu.sn', SHA2('Aminata123', 256), 'ETUDIANT', 5, 'L2'),
 
 -- UFR SEG - Gestion (filiere_id 6)
-(60123458, 'SY', 'Moussa', 'moussa.sy@uam.edu.sn', NULL, 'ETUDIANT', 6, 'L3'),
+(345679, 'SY', 'Moussa', 'moussa.sy@uam.edu.sn', NULL, 'ETUDIANT', 6, 'L3'),
 
 -- UFR TECNA - Communication (filiere_id 7)
-(50123459, 'DIOP', 'Khadija', 'khadija.diop@uam.edu.sn', SHA2('Khadija2026', 256), 'ETUDIANT', 7, 'M1'),
+(456789, 'DIOP', 'Khadija', 'khadija.diop@uam.edu.sn', SHA2('Khadija2026', 256), 'ETUDIANT', 7, 'M1'),
 
 -- UFR TECNA - Infographie (filiere_id 8)
-(60123459, 'FALL', 'Papa', 'papa.fall@uam.edu.sn', NULL, 'ETUDIANT', 8, 'L1'),
+(456790, 'FALL', 'Papa', 'papa.fall@uam.edu.sn', NULL, 'ETUDIANT', 8, 'L1'),
 
 -- UFR TECNA - Audiovisuel (filiere_id 9)
-(50123460, 'SECK', 'Mariama', 'mariama.seck@uam.edu.sn', SHA2('Mariama2026', 256), 'ETUDIANT', 9, 'M2'),
+(567890, 'SECK', 'Mariama', 'mariama.seck@uam.edu.sn', SHA2('Mariama2026', 256), 'ETUDIANT', 9, 'M2'),
 
 -- POLYTECHNIQUE - DSTI (filiere_id 10, 11, 12, 13, 14)
-(60123460, 'NDOUR', 'Amadou', 'amadou.ndour@uam.edu.sn', NULL, 'ETUDIANT', 10, 'L3'),
-(50123461, 'DIAGNE', 'Fatoumata', 'fatoumata.diagne@uam.edu.sn', SHA2('Fatoumata2026', 256), 'ETUDIANT', 11, 'M1'),
-(60123461, 'SARR', 'Modou', 'modou.sarr@uam.edu.sn', NULL, 'ETUDIANT', 12, 'L2'),
-(50123462, 'NDIAYE', 'Khadim', 'khadim.ndiaye@uam.edu.sn', SHA2('Khadim2026', 256), 'ETUDIANT', 13, 'L3'),
-(60123462, 'FALL', 'Awa', 'awa.fall@uam.edu.sn', NULL, 'ETUDIANT', 14, 'M1'),
+(567891, 'NDOUR', 'Amadou', 'amadou.ndour@uam.edu.sn', NULL, 'ETUDIANT', 10, 'L3'),
+(678901, 'DIAGNE', 'Fatoumata', 'fatoumata.diagne@uam.edu.sn', SHA2('Fatoumata2026', 256), 'ETUDIANT', 11, 'M1'),
+(678902, 'SARR', 'Modou', 'modou.sarr@uam.edu.sn', NULL, 'ETUDIANT', 12, 'L2'),
+(789012, 'NDIAYE', 'Khadim', 'khadim.ndiaye@uam.edu.sn', SHA2('Khadim2026', 256), 'ETUDIANT', 13, 'L3'),
+(789013, 'FALL', 'Awa', 'awa.fall@uam.edu.sn', NULL, 'ETUDIANT', 14, 'M1'),
 
 -- POLYTECHNIQUE - DGAE (filiere_id 15, 16, 17, 18)
-(50123463, 'SOW', 'Mamadou', 'mamadou.sow@uam.edu.sn', SHA2('Mamadou2026', 256), 'ETUDIANT', 15, 'L2'),
-(60123463, 'GUEYE', 'Fatou', 'fatou.gueye@uam.edu.sn', NULL, 'ETUDIANT', 16, 'L3'),
-(50123464, 'DIOP', 'Moussa', 'moussa.diop@uam.edu.sn', SHA2('Moussa2026', 256), 'ETUDIANT', 17, 'M2'),
-(60123464, 'SY', 'Khadija', 'khadija.sy@uam.edu.sn', NULL, 'ETUDIANT', 18, 'L1'),
+(890123, 'SOW', 'Mamadou', 'mamadou.sow@uam.edu.sn', SHA2('Mamadou2026', 256), 'ETUDIANT', 15, 'L2'),
+(890124, 'GUEYE', 'Fatou', 'fatou.gueye@uam.edu.sn', NULL, 'ETUDIANT', 16, 'L3'),
+(901234, 'DIOP', 'Moussa', 'moussa.diop@uam.edu.sn', SHA2('Moussa2026', 256), 'ETUDIANT', 17, 'M2'),
+(901235, 'SY', 'Khadija', 'khadija.sy@uam.edu.sn', NULL, 'ETUDIANT', 18, 'L1'),
 
 -- POLYTECHNIQUE - DST2AN (filiere_id 19, 20, 21, 22)
-(50123465, 'FALL', 'Ibrahima', 'ibrahima.fall@uam.edu.sn', SHA2('Ibrahima2026', 256), 'ETUDIANT', 19, 'L3'),
-(60123465, 'NDIAYE', 'Mariama', 'mariama.ndiaye@uam.edu.sn', NULL, 'ETUDIANT', 20, 'M1'),
-(50123466, 'SARR', 'Aminata', 'aminata.sarr@uam.edu.sn', SHA2('Aminata2026', 256), 'ETUDIANT', 21, 'L2'),
-(60123466, 'DIAGNE', 'Papa', 'papa.diagne@uam.edu.sn', NULL, 'ETUDIANT', 22, 'L3'),
+(123458, 'FALL', 'Ibrahima', 'ibrahima.fall@uam.edu.sn', SHA2('Ibrahima2026', 256), 'ETUDIANT', 19, 'L3'),
+(123459, 'NDIAYE', 'Mariama', 'mariama.ndiaye@uam.edu.sn', NULL, 'ETUDIANT', 20, 'M1'),
+(234569, 'SARR', 'Aminata', 'aminata.sarr@uam.edu.sn', SHA2('Aminata2026', 256), 'ETUDIANT', 21, 'L2'),
+(234570, 'DIAGNE', 'Papa', 'papa.diagne@uam.edu.sn', NULL, 'ETUDIANT', 22, 'L3'),
 
 -- POLYTECHNIQUE - DU2ADT (filiere_id 23, 24)
-(50123467, 'SECK', 'Mamadou', 'mamadou.seck@uam.edu.sn', SHA2('MamadouSeck2026', 256), 'ETUDIANT', 23, 'M1'),
-(60123467, 'NDOUR', 'Awa', 'awa.ndour@uam.edu.sn', NULL, 'ETUDIANT', 24, 'L2'),
+(345680, 'SECK', 'Mamadou', 'mamadou.seck@uam.edu.sn', SHA2('MamadouSeck2026', 256), 'ETUDIANT', 23, 'M1'),
+(345681, 'NDOUR', 'Awa', 'awa.ndour@uam.edu.sn', NULL, 'ETUDIANT', 24, 'L2'),
 
 -- POLYTECHNIQUE - DGO (filiere_id 25, 26)
-(50123468, 'DIALLO', 'Moussa', 'moussa.diallo@uam.edu.sn', SHA2('MoussaDiallo2026', 256), 'ETUDIANT', 25, 'L3'),
-(60123468, 'BA', 'Fatoumata', 'fatoumata.ba@uam.edu.sn', NULL, 'ETUDIANT', 26, 'M1');
+(456791, 'DIALLO', 'Moussa', 'moussa.diallo@uam.edu.sn', SHA2('MoussaDiallo2026', 256), 'ETUDIANT', 25, 'L3'),
+(456792, 'BA', 'Fatoumata', 'fatoumata.ba@uam.edu.sn', NULL, 'ETUDIANT', 26, 'M1');
 
 -- ==========================================
--- 5. INSERTION DES ENSEIGNANTS (CORRIGÉ - EMAILS UNIQUES)
--- Codes permanents : commencent par 50 ou 60 + 6 chiffres
--- filiere_id = NULL car un enseignant peut enseigner dans plusieurs filières
+-- 5. INSERTION DES ENSEIGNANTS
+-- Codes permanents : 6 chiffres entre 100000 et 999999
 -- ==========================================
 INSERT INTO users (code_permanent, nom, prenom, email, password, profession, filiere_id, niveau) VALUES 
 -- Enseignants UFR STA
-(50123469, 'SECK', 'Ibrahima', 'ibrahima.seck.prof@uam.edu.sn', SHA2('Enseignant2026', 256), 'ENSEIGNANT', NULL, NULL),
-(60123469, 'NDIAYE', 'Mariama', 'mariama.ndiaye.prof@uam.edu.sn', SHA2('Prof2026', 256), 'ENSEIGNANT', NULL, NULL),
+(234571, 'SECK', 'Ibrahima', 'ibrahima.seck.prof@uam.edu.sn', SHA2('Enseignant2026', 256), 'ENSEIGNANT', NULL, NULL),
+(345682, 'NDIAYE', 'Mariama', 'mariama.ndiaye.prof@uam.edu.sn', SHA2('Prof2026', 256), 'ENSEIGNANT', NULL, NULL),
 
 -- Enseignants UFR SEG
-(50123470, 'SOW', 'Amadou', 'amadou.sow.prof@uam.edu.sn', SHA2('SowProf', 256), 'ENSEIGNANT', NULL, NULL),
-(60123470, 'GUEYE', 'Fatou', 'fatou.gueye.prof@uam.edu.sn', SHA2('GueyeProf', 256), 'ENSEIGNANT', NULL, NULL),
+(456793, 'SOW', 'Amadou', 'amadou.sow.prof@uam.edu.sn', SHA2('SowProf', 256), 'ENSEIGNANT', NULL, NULL),
+(567892, 'GUEYE', 'Fatou', 'fatou.gueye.prof@uam.edu.sn', SHA2('GueyeProf', 256), 'ENSEIGNANT', NULL, NULL),
 
 -- Enseignants UFR TECNA
-(50123471, 'DIOP', 'Moussa', 'moussa.diop.prof@uam.edu.sn', SHA2('DiopProf', 256), 'ENSEIGNANT', NULL, NULL),
-(60123471, 'SY', 'Khadija', 'khadija.sy.prof@uam.edu.sn', SHA2('SyProf', 256), 'ENSEIGNANT', NULL, NULL),
+(678903, 'DIOP', 'Moussa', 'moussa.diop.prof@uam.edu.sn', SHA2('DiopProf', 256), 'ENSEIGNANT', NULL, NULL),
+(789014, 'SY', 'Khadija', 'khadija.sy.prof@uam.edu.sn', SHA2('SyProf', 256), 'ENSEIGNANT', NULL, NULL),
 
 -- Enseignants POLYTECHNIQUE
-(50123472, 'FALL', 'Ibrahima', 'ibrahima.fall.prof@uam.edu.sn', SHA2('FallProf', 256), 'ENSEIGNANT', NULL, NULL),
-(60123472, 'NDIAYE', 'Moussa', 'moussa.ndiaye.prof@uam.edu.sn', SHA2('NdiayeProf', 256), 'ENSEIGNANT', NULL, NULL),
-(50123473, 'SARR', 'Aminata', 'aminata.sarr.prof@uam.edu.sn', SHA2('SarrProf', 256), 'ENSEIGNANT', NULL, NULL),
-(60123473, 'DIAGNE', 'Papa', 'papa.diagne.prof@uam.edu.sn', SHA2('DiagneProf', 256), 'ENSEIGNANT', NULL, NULL);
+(890125, 'FALL', 'Ibrahima', 'ibrahima.fall.prof@uam.edu.sn', SHA2('FallProf', 256), 'ENSEIGNANT', NULL, NULL),
+(901236, 'NDIAYE', 'Moussa', 'moussa.ndiaye.prof@uam.edu.sn', SHA2('NdiayeProf', 256), 'ENSEIGNANT', NULL, NULL),
+(123460, 'SARR', 'Aminata', 'aminata.sarr.prof@uam.edu.sn', SHA2('SarrProf', 256), 'ENSEIGNANT', NULL, NULL),
+(234572, 'DIAGNE', 'Papa', 'papa.diagne.prof@uam.edu.sn', SHA2('DiagneProf', 256), 'ENSEIGNANT', NULL, NULL);
 
 -- ==========================================
 -- 6. INSERTION DES ADMINISTRATEURS
--- Codes permanents : commencent par 50 ou 60 + 6 chiffres
+-- Codes permanents : 6 chiffres entre 100000 et 999999
 -- ==========================================
 INSERT INTO admin (code_permanent, nom, prenom, email, password) VALUES 
-(50123474, 'FALL', 'Moustapha', 'moustapha.fall@uam.edu.sn', SHA2('AdminSecure2026', 256)),
-(60123474, 'DIALLO', 'Aminata', 'aminata.diallo@uam.edu.sn', SHA2('AdminPass123', 256)),
-(50123475, 'SOW', 'Mamadou', 'mamadou.sow@uam.edu.sn', SHA2('AdminUAM2026', 256));
+(345683, 'FALL', 'Moustapha', 'moustapha.fall@uam.edu.sn', SHA2('AdminSecure2026', 256)),
+(456794, 'DIALLO', 'Aminata', 'aminata.diallo@uam.edu.sn', SHA2('AdminPass123', 256)),
+(567893, 'SOW', 'Mamadou', 'mamadou.sow@uam.edu.sn', SHA2('AdminUAM2026', 256));
 
 -- ==========================================
 -- 7. INSERTION DES ENSEIGNANTS DANS LA TABLE enseignant_filieres
--- (Association des enseignants avec leurs filières)
 -- ==========================================
 INSERT INTO enseignant_filieres (enseignant_id, filiere_id) VALUES
 -- SECK Ibrahima enseigne en MPI et MASS
