@@ -1,5 +1,7 @@
 package app.controller;
 
+import java.util.List;
+
 import app.dao.UfrDAO;
 import app.model.Ufr;
 import app.view.AdminUfrView;
@@ -8,17 +10,19 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import java.util.List;
-
 
 public class AdminUfrController extends BorderPane {
 
     private final AdminUfrView view;
 
-    // Éléments de la Table (Récupérés depuis la vue)
+    // Éléments de la Table
     private TableView<Ufr> tableUfr;
 
     // Éléments du Formulaire de droite
@@ -65,17 +69,11 @@ public class AdminUfrController extends BorderPane {
         setupRealtimeSearch();
     }
 
-    /**
-     * Met à jour le CONTENU de la liste existante sans casser les liaisons du filtre
-     */
     private void loadUfrData() {
         List<Ufr> list = ufrDAO.getAllUfr();
         ufrList.setAll(list); 
     }
 
-    /**
-     * Écouteur de sélection : remplit le formulaire lorsqu'on clique sur une ligne de la table
-     */
     private void setupSelectionListener() {
         tableUfr.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
@@ -85,24 +83,21 @@ public class AdminUfrController extends BorderPane {
         });
     }
 
-    /**
-     * Recherche dynamique en temps réel robuste et sécurisée
-     */
     private void setupRealtimeSearch() {
         FilteredList<Ufr> filteredData = new FilteredList<>(ufrList, p -> true);
 
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
-            filteredData.setPredicate(user -> {
+            filteredData.setPredicate(ufr -> {
                 if (newValue == null || newValue.trim().isEmpty()) {
                     return true;
                 }
 
                 String lowerCaseFilter = newValue.toLowerCase().trim();
 
-                if (user.getNom() != null && user.getNom().toLowerCase().contains(lowerCaseFilter)) {
+                if (ufr.getNom() != null && ufr.getNom().toLowerCase().contains(lowerCaseFilter)) {
                     return true;
                 }
-                if (String.valueOf(user.getId()).contains(lowerCaseFilter)) {
+                if (String.valueOf(ufr.getId()).contains(lowerCaseFilter)) {
                     return true;
                 }
                 return false; 
@@ -115,39 +110,31 @@ public class AdminUfrController extends BorderPane {
         tableUfr.setItems(sortedData);
     }
 
-    /**
-     * Logique d'ajout d'un utilisateur
-     */
     private void gererAjout() {
-    
         String nom = txtNom.getText().trim();
 
         if (nom.isEmpty()) {
-            afficherAlerte(Alert.AlertType.WARNING, "Champs requis", "Veuillez remplir tous les champs du formulaire.");
+            afficherAlerte(Alert.AlertType.WARNING, "Champs requis", "Veuillez renseigner le nom de l'UFR.");
             return;
         }
 
         try {
-
             Ufr u = new Ufr();
             u.setNom(nom);
 
             if (ufrDAO.addUfr(u)) {
-                afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "L'UFR a été ajouté avec succès.");
+                afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "L'UFR a été ajoutée avec succès.");
                 loadUfrData(); 
                 clearForm();
             } else {
-                afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'ajouter l'UFR. Vérifiez que l'UFR n'est pas déjà enregistré.");
+                afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible d'ajouter l'UFR. Vérifiez qu'elle n'existe pas déjà.");
             }
 
         } catch (Exception e) {
-            afficherAlerte(Alert.AlertType.ERROR, "Format invalide", "Le Code Permanent doit obligatoirement être un nombre.");
+            afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Une erreur est survenue lors de l'ajout.");
         }
     }
 
-    /**
-     * Logique de modification
-     */
     private void gererModification() {
         Ufr selectedUfr = tableUfr.getSelectionModel().getSelectedItem();
         if (selectedUfr == null) {
@@ -158,14 +145,14 @@ public class AdminUfrController extends BorderPane {
         String nom = txtNom.getText().trim();
 
         if (nom.isEmpty()) {
-            afficherAlerte(Alert.AlertType.WARNING, "Champs requis", "Les informations ne peuvent pas être vides.");
+            afficherAlerte(Alert.AlertType.WARNING, "Champs requis", "Le nom de l'UFR ne peut pas être vide.");
             return;
         }
 
         selectedUfr.setNom(nom);
 
         if (ufrDAO.updateUfr(selectedUfr)) {
-            afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "UFR mis à jour.");
+            afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "UFR mise à jour.");
             loadUfrData();
             clearForm();
         } else {
@@ -173,9 +160,6 @@ public class AdminUfrController extends BorderPane {
         }
     }
 
-    /**
-     * Logique de suppression
-     */
     private void gererSuppression() {
         Ufr selectedUfr = tableUfr.getSelectionModel().getSelectedItem();
         if (selectedUfr == null) {
@@ -187,9 +171,9 @@ public class AdminUfrController extends BorderPane {
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
                 if (ufrDAO.deleteUfr(selectedUfr.getId())) {
-                    afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "UFR supprimé.");
+                    afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "UFR supprimée.");
                     loadUfrData();
-                    clearForm(); // Fix: Réinitialise le formulaire et réactive le champ d'identifiant
+                    clearForm();
                 } else {
                     afficherAlerte(Alert.AlertType.ERROR, "Erreur", "La suppression a échoué.");
                 }
@@ -199,8 +183,8 @@ public class AdminUfrController extends BorderPane {
 
     private void clearForm() {
         txtId.clear();
-        txtId.setDisable(false); // Réactive le champ pour les futurs ajouts
         txtNom.clear();
+        tableUfr.getSelectionModel().clearSelection();
     }
 
     private void retourAuTableauBord() {

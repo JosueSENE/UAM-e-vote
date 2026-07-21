@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.model.Departement;
 import app.model.Filiere;
 import app.utils.DBConnection;
 
@@ -78,15 +79,22 @@ public class FiliereDAO {
 
     public List<Filiere> getAllFilieres() {
         List<Filiere> liste = new ArrayList<>();
-        String sql = "SELECT * FROM filieres ORDER BY id DESC";
+        String sql = "SELECT f.*, d.nom AS departement_nom "+
+        "FROM filieres f "+
+        "LEFT JOIN departements d ON f.departement_id = d.id "+
+        "ORDER BY id DESC";
         try (Connection conn = DBConnection.getConnection();
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Filiere f = new Filiere();
-                f.setId(rs.getInt("id"));                     // Correction : Récupération de l'ID de la ligne
-                f.setDepartement_id(rs.getInt("departement_id")); // Récupération du département lié
+                f.setId(rs.getInt("id"));                     
+                f.setDepartement_id(rs.getInt("departement_id")); 
                 f.setNom(rs.getString("nom"));
+                Departement d = new Departement();
+                d.setId(rs.getInt("departement_id"));
+                d.setNom(rs.getString("departement_nom"));
+                f.setDepartement(d);
                 liste.add(f);
             }       
         } catch (SQLException e) {

@@ -1,6 +1,6 @@
 package app.view;
 
-import app.model.Ufr;
+import app.model.Filiere;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -21,15 +21,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class AdminUfrView extends BorderPane {
+public class AdminFiliereView extends BorderPane {
 
-    private TableView<Ufr> tableUfr;
-    private TableColumn<Ufr, Integer> colId;
-    private TableColumn<Ufr, String> colNom;
+    private TableView<Filiere> tableFiliere;
+    private TableColumn<Filiere, Integer> colId;
+    private TableColumn<Filiere, String> colNom;
+    private TableColumn<Filiere, Integer> colIdDepartement;
+    private TableColumn<Filiere, String> colNomDepartement;
 
     private TextField txtSearch;
     private TextField txtId;
     private TextField txtNom;
+    private TextField txtDepartementId;
 
     private Button btnAjouter;
     private Button btnModifier;
@@ -37,7 +40,7 @@ public class AdminUfrView extends BorderPane {
     private Button btnVider;
     private Button btnRetour;
 
-    public AdminUfrView() {
+    public AdminFiliereView() {
         this.setPadding(new Insets(20));
         this.setStyle("-fx-background-color: #f8f9fa;");
         initLeftTableSection();
@@ -57,7 +60,7 @@ public class AdminUfrView extends BorderPane {
         btnRetour.setOnMouseEntered(e -> btnRetour.setCursor(javafx.scene.Cursor.HAND));
         btnRetour.setOnMouseExited(e -> btnRetour.setCursor(javafx.scene.Cursor.DEFAULT));
 
-        Label lblTitle = new Label("Gestion des UFRs");
+        Label lblTitle = new Label("Gestion des Filières");
         lblTitle.setFont(Font.font("System", FontWeight.BOLD, 22));
         lblTitle.setStyle("-fx-text-fill: #005088;");
 
@@ -67,7 +70,7 @@ public class AdminUfrView extends BorderPane {
         Label lblSearch = new Label("Rechercher : ");
         lblSearch.setStyle("-fx-font-weight: bold;");
         txtSearch = new TextField();
-        txtSearch.setPromptText("Id ou Nom");
+        txtSearch.setPromptText("Id");
         txtSearch.setPrefWidth(200);
         txtSearch.setStyle("-fx-background-radius: 15;");
 
@@ -76,10 +79,10 @@ public class AdminUfrView extends BorderPane {
 
         headerBox.getChildren().addAll(btnRetour, lblTitle, spacer, searchBox);
 
-        tableUfr = new TableView<>();
-        tableUfr.setPlaceholder(new Label("Aucun contenu dans la table"));
-        tableUfr.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        tableUfr.setPrefHeight(550);
+        tableFiliere = new TableView<>();
+        tableFiliere.setPlaceholder(new Label("Aucun contenu dans la table"));
+        tableFiliere.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableFiliere.setPrefHeight(550);
 
         colId = new TableColumn<>("Id");
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
@@ -87,10 +90,18 @@ public class AdminUfrView extends BorderPane {
         colNom = new TableColumn<>("Nom");
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
 
-        tableUfr.getColumns().add(colId);
-        tableUfr.getColumns().add(colNom);
+        colIdDepartement = new TableColumn<>("Id Département");
+        colIdDepartement.setCellValueFactory(new PropertyValueFactory<>("departement_id"));
 
-        leftBox.getChildren().addAll(headerBox, tableUfr);
+        colNomDepartement = new TableColumn<>("Nom Département");
+        colNomDepartement.setCellValueFactory(new PropertyValueFactory<>("departementNom"));
+
+        tableFiliere.getColumns().add(colId);
+        tableFiliere.getColumns().add(colNom);
+        tableFiliere.getColumns().add(colIdDepartement);
+        tableFiliere.getColumns().add(colNomDepartement);
+
+        leftBox.getChildren().addAll(headerBox, tableFiliere);
         this.setCenter(leftBox);
     }
 
@@ -102,18 +113,27 @@ public class AdminUfrView extends BorderPane {
                 "-fx-background-radius: 10; " +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 4);");
 
-        Label lblFormTitle = new Label("Informations UFR");
+        Label lblFormTitle = new Label("Informations Filière");
         lblFormTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
         lblFormTitle.setStyle("-fx-text-fill: #333;");
 
         txtId = new TextField();
         txtId.setPromptText("Auto-généré");
         txtId.setEditable(false);
-        VBox fieldId = createFormField("Id :", txtId);
+        VBox fieldId = createFormField("Id  :", txtId);
 
         txtNom = new TextField();
-        txtNom.setPromptText("Ex: SAT");
+        txtNom.setPromptText("Ex: Genie Logiciel");
         VBox fieldNom = createFormField("Nom :", txtNom);
+
+        txtDepartementId = new TextField();
+        txtDepartementId.setPromptText("Ex: 1");
+        txtDepartementId.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                txtDepartementId.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+        VBox fieldDepartementId = createFormField("Id Département :", txtDepartementId);
 
         GridPane gridButtons = new GridPane();
         gridButtons.setHgap(10);
@@ -150,7 +170,7 @@ public class AdminUfrView extends BorderPane {
         col2.setPercentWidth(50);
         gridButtons.getColumnConstraints().addAll(col1, col2);
 
-        formBox.getChildren().addAll(lblFormTitle, new Separator(), fieldId, fieldNom, new Separator(), gridButtons);
+        formBox.getChildren().addAll(lblFormTitle, new Separator(), fieldId, fieldNom, fieldDepartementId, new Separator(), gridButtons);
 
         HBox rightBox = new HBox(formBox);
         rightBox.setPadding(new Insets(10));
@@ -166,10 +186,11 @@ public class AdminUfrView extends BorderPane {
         return vbox;
     }
 
-    public TableView<Ufr> getTableUfr() { return tableUfr; }
+    public TableView<Filiere> getTableFiliere() { return tableFiliere; }
     public TextField getTxtSearch() { return txtSearch; }
     public TextField getTxtId() { return txtId; }
     public TextField getTxtNom() { return txtNom; }
+    public TextField getTxtDepartementId() { return txtDepartementId; }
     public Button getBtnAjouter() { return btnAjouter; }
     public Button getBtnModifier() { return btnModifier; }
     public Button getBtnSupprimer() { return btnSupprimer; }
@@ -179,5 +200,6 @@ public class AdminUfrView extends BorderPane {
     public void clearFormFields() {
         txtId.clear();
         txtNom.clear();
+        txtDepartementId.clear();
     }
 }

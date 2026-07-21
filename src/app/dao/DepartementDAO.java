@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.model.Departement;
+import app.model.Ufr;
 import app.utils.DBConnection;
 
 public class DepartementDAO {
 
     // ===================== CRUD ==============================
 
-    // AJOUTER UN DEPARTEMENT (Retourne true si l'ajout a réussi)
-    
+    // AJOUTER UN DEPARTEMENT
     public boolean addDepartement(Departement d) {
         String sql = "INSERT INTO departements (ufr_id, nom) VALUES (?, ?)";
         try (Connection conn = DBConnection.getConnection();
@@ -31,8 +31,7 @@ public class DepartementDAO {
         return false;
     }
 
-    // RECHERCHER UN DÉPARTEMENT PAR SON id
-
+    // RECHERCHER UN DÉPARTEMENT PAR SON ID
     public Departement searchDepartement(int id) {
         String sql = "SELECT * FROM departements WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -54,19 +53,28 @@ public class DepartementDAO {
         return null;
     }
 
-    // RECUPERER TOUS LES DÉPARTEMENTS
-
+    // RECUPERER TOUS LES DÉPARTEMENTS (Avec le nom de leur UFR respectif)
     public List<Departement> getAllDepartements() {
         List<Departement> liste = new ArrayList<>();
-        String sql = "SELECT * FROM departements ORDER BY id DESC";
+        String sql = "SELECT d.*, u.nom AS ufr_nom " +
+                    "FROM departements d " +
+                    "LEFT JOIN ufr u ON d.ufr_id = u.id " +
+                    "ORDER BY d.id DESC";
+
         try (Connection conn = DBConnection.getConnection();
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
                 Departement d = new Departement();
                 d.setId(rs.getInt("id"));              
                 d.setUfr_id(rs.getInt("ufr_id"));       
-                d.setNom(rs.getString("nom"));
+                d.setNom(rs.getString("nom")); 
+                Ufr u = new Ufr();
+                u.setId(rs.getInt("ufr_id"));
+                u.setNom(rs.getString("ufr_nom")); 
+                d.setUfr(u);
+
                 liste.add(d);
             }       
         } catch (SQLException e) {
@@ -76,10 +84,8 @@ public class DepartementDAO {
         return liste;
     }
 
-    // MODIFIER UN DÉPARTEMENT (Retourne true si la modification a réussi)
-
+    // MODIFIER UN DÉPARTEMENT
     public boolean updateDepartement(Departement d) {
-        // Correction de UPDADE -> UPDATE et ajout du filtre id
         String sql = "UPDATE departements SET ufr_id = ?, nom = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -98,8 +104,7 @@ public class DepartementDAO {
         return false;
     }
 
-    // SUPPRIMER UN DÉPARTEMENT (Retourne true si la suppression a réussi)
-
+    // SUPPRIMER UN DÉPARTEMENT
     public boolean deleteDepartement(int id) {
         String sql = "DELETE FROM departements WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();

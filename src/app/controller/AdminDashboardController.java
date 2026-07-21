@@ -228,12 +228,12 @@ public class AdminDashboardController extends BorderPane {
     /**
      * Ouvre l'interface de gestion des Statistiques.
      */
-
     private void ouvrirStatistiques() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
-            StatisticsView statisticsView = new StatisticsView();
-            Scene scene = new Scene(statisticsView, 1400, 700);
+            StatisticsController statisticsController = new StatisticsController();
+            Scene scene = new Scene(statisticsController, 1400, 700);
+            
             stage.setTitle("UAM e-Vote - Statistiques");
             stage.setScene(scene);
             stage.centerOnScreen();

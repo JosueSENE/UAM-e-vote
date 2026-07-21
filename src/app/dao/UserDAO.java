@@ -181,20 +181,19 @@ public class UserDAO {
         return false;
     } 
 
-    // SUPPRIMER UN UTILISATEUR (DELETE via code_permanent)
-
-    public boolean deleteUser(int code_permanent) {
-        String sql = "DELETE FROM users WHERE code_permanent = ?";
+   // SUPPRIMER UN UTILISATEUR (DELETE via id)
+    public boolean deleteUser(int id) {
+        String sql = "DELETE FROM users WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, code_permanent);
+            ps.setInt(1, id);
             
             if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Utilisateur permanent n° " + code_permanent + " supprimé de la base de données");
+                System.out.println("Succès : Utilisateur ID n° " + id + " supprimé de la base de données");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression de l'utilisateur permanent " + code_permanent);
+            System.err.println("Erreur lors de la suppression de l'utilisateur ID " + id);
             e.printStackTrace();
         }
         return false;

@@ -7,10 +7,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 import java.util.List;
 
@@ -18,10 +16,10 @@ public class AdminUsersController extends BorderPane {
 
     private final AdminUsersView view;
 
-    // Éléments de la Table (Récupérés depuis la vue)
+    // Éléments de la Table
     private TableView<User> tableUsers;
 
-    // Éléments du Formulaire de droite
+    // Éléments du Formulaire
     private TextField txtSearch;
     private TextField txtCodePermanent; 
     private TextField txtNom;
@@ -71,21 +69,16 @@ public class AdminUsersController extends BorderPane {
         setupRealtimeSearch();
     }
 
-    /**
-     * Met à jour le CONTENU de la liste existante sans casser les liaisons du filtre
-     */
     private void loadUsersData() {
         List<User> list = userDAO.getAllUsers();
         userList.setAll(list); 
     }
 
-    /**
-     * Écouteur de sélection : remplit le formulaire lorsqu'on clique sur une ligne de la table
-     */
     private void setupSelectionListener() {
         tableUsers.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 txtCodePermanent.setText(String.valueOf(newSelection.getCode_permanent())); 
+                view.setCodePermanentEditable(false); // Désactive la modification du code permanent
                 txtNom.setText(newSelection.getNom());
                 txtPrenom.setText(newSelection.getPrenom());
                 txtEmail.setText(newSelection.getEmail());
@@ -94,9 +87,6 @@ public class AdminUsersController extends BorderPane {
         });
     }
 
-    /**
-     * Recherche dynamique en temps réel robuste et sécurisée
-     */
     private void setupRealtimeSearch() {
         FilteredList<User> filteredData = new FilteredList<>(userList, p -> true);
 
@@ -126,13 +116,9 @@ public class AdminUsersController extends BorderPane {
 
         SortedList<User> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(tableUsers.comparatorProperty());
-        
         tableUsers.setItems(sortedData);
     }
 
-    /**
-     * Logique d'ajout d'un utilisateur
-     */
     private void gererAjout() {
         String codePermanentStr = txtCodePermanent.getText().trim();
         String nom = txtNom.getText().trim();
@@ -178,9 +164,6 @@ public class AdminUsersController extends BorderPane {
         }
     }
 
-    /**
-     * Logique de modification
-     */
     private void gererModification() {
         User selectedUser = tableUsers.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
@@ -202,6 +185,7 @@ public class AdminUsersController extends BorderPane {
             afficherAlerte(Alert.AlertType.ERROR, "Format incorrect", "L'adresse email saisie n'est pas valide.");
             return;
         }
+
         selectedUser.setNom(nom);
         selectedUser.setPrenom(prenom);
         selectedUser.setEmail(email);
@@ -216,9 +200,6 @@ public class AdminUsersController extends BorderPane {
         }
     }
 
-    /**
-     * Logique de suppression
-     */
     private void gererSuppression() {
         User selectedUser = tableUsers.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
@@ -232,7 +213,7 @@ public class AdminUsersController extends BorderPane {
                 if (userDAO.deleteUser(selectedUser.getId())) {
                     afficherAlerte(Alert.AlertType.INFORMATION, "Succès", "Utilisateur supprimé.");
                     loadUsersData();
-                    clearForm(); // Fix: Réinitialise le formulaire et réactive le champ d'identifiant
+                    clearForm();
                 } else {
                     afficherAlerte(Alert.AlertType.ERROR, "Erreur", "La suppression a échoué.");
                 }
@@ -241,26 +222,13 @@ public class AdminUsersController extends BorderPane {
     }
 
     private void clearForm() {
-        txtCodePermanent.clear();
-        txtCodePermanent.setDisable(false); // Réactive le champ pour les futurs ajouts
-        txtNom.clear();
-        txtPrenom.clear();
-        txtEmail.clear();
-        comboProfession.setValue(null); 
         tableUsers.getSelectionModel().clearSelection();
+        view.clearFormFields();
     }
 
     private void retourAuTableauBord() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            AdminDashboardController dashboardController = new AdminDashboardController();
-            Scene scene = new Scene(dashboardController, 1400, 700);
-            stage.setTitle("UAM e-Vote - Tableau de bord administrateur");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            afficherAlerte(Alert.AlertType.ERROR, "Erreur", "Impossible de revenir au tableau de bord.");
-        }
+        // Logique pour réafficher le Dashboard de l'admin
+        System.out.println("Retour au tableau de bord...");
     }
 
     private void afficherAlerte(Alert.AlertType type, String titre, String message) {
