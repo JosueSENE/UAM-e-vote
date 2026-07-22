@@ -210,7 +210,7 @@ public class LoginController extends BorderPane {
         // CAS B : Connexion classique admin
         Admin adminValide = adminDAO.authentificate(admin.getEmail(), secretSaisi);
         if (adminValide != null) {
-            ouvrirInterfaceAdmin();
+            ouvrirDashboardAdmin(adminValide);
             return true;
         } else {
             afficherAlerte(Alert.AlertType.ERROR, "Échec de connexion", MSG_MDP_INCORRECT);
@@ -337,7 +337,7 @@ public class LoginController extends BorderPane {
         // Mise à jour dynamique de la force
         pf1.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.isEmpty()) {
-                PasswordHasher.PasswordStrength strength = PasswordHasher.checkPasswordStrength(newVal);
+                app.utils.PasswordHasher.PasswordStrength strength = app.utils.PasswordHasher.checkPasswordStrength(newVal);
                 String color;
                 String emoji;
                 switch (strength.getLevel()) {
@@ -395,8 +395,8 @@ public class LoginController extends BorderPane {
                 afficherAlerte(Alert.AlertType.WARNING, "Mot de passe trop court", 
                     "Le mot de passe doit contenir au moins 6 caractères.");
                 event.consume();
-            } else if (!PasswordHasher.isValidPassword(mdp1)) {
-                PasswordHasher.PasswordStrength strength = PasswordHasher.checkPasswordStrength(mdp1);
+            } else if (!app.utils.PasswordHasher.isValidPassword(mdp1)) {
+                app.utils.PasswordHasher.PasswordStrength strength = app.utils.PasswordHasher.checkPasswordStrength(mdp1);
                 afficherAlerte(Alert.AlertType.WARNING, "Mot de passe trop faible", 
                     "Le mot de passe ne respecte pas les critères de sécurité.\n\n" +
                     strength.getFeedback() +
@@ -446,6 +446,28 @@ public class LoginController extends BorderPane {
     // REDIRECTIONS
     // ==========================================
 
+    /**
+     * Ouvre le dashboard admin avec l'admin connecté
+     */
+    private void ouvrirDashboardAdmin(Admin admin) {
+        try {
+            Stage stage = (Stage) view.getScene().getWindow();
+            AdminDashboardController dashboardController = new AdminDashboardController(admin);
+            Scene scene = new Scene(dashboardController, 1400, 700);
+            stage.setTitle("UAM e-Vote - Tableau de bord administrateur");
+            stage.setScene(scene);
+            stage.centerOnScreen();
+            System.out.println("✅ Redirection vers le Dashboard Admin avec: " + admin.getPrenom() + " " + admin.getNom());
+        } catch (Exception e) {
+            e.printStackTrace();
+            afficherAlerte(Alert.AlertType.ERROR, "Erreur", 
+                "Impossible d'ouvrir le tableau de bord administrateur : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Ouvre le dashboard admin (méthode alternative sans admin)
+     */
     private void ouvrirInterfaceAdmin() {
         try {
             Stage stage = (Stage) view.getScene().getWindow(); 
@@ -455,7 +477,7 @@ public class LoginController extends BorderPane {
             stage.setScene(adminScene);
             stage.setMaximized(true);
             stage.centerOnScreen();
-            System.out.println("✅ Redirection vers le Dashboard Admin");
+            System.out.println("✅ Redirection vers le Dashboard Admin (sans admin)");
         } catch (Exception e) {
             afficherAlerte(Alert.AlertType.ERROR, "Erreur", 
                 "Impossible d'ouvrir le tableau de bord administrateur : " + e.getMessage());

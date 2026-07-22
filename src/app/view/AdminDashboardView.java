@@ -1,16 +1,19 @@
 package app.view;
 
+import app.controller.LoginController;
+import app.model.Admin;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.Tooltip;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class AdminDashboardView extends BorderPane {
@@ -20,8 +23,12 @@ public class AdminDashboardView extends BorderPane {
     // ==========================================
     
     private VBox sidebar;
+    private VBox sidebarContent;
+    private ScrollPane sidebarScroll;
     private Button btnToggleMenu;
     private boolean isMenuVisible = true;
+    private static final double MENU_WIDTH = 230;
+    private static final double MENU_COLLAPSED_WIDTH = 60;
     
     // ==========================================
     // BOUTONS DU MENU (9 ACTIONS)
@@ -49,6 +56,20 @@ public class AdminDashboardView extends BorderPane {
     private Label lblVotants;
     private Label lblNonVotants;
     private Label lblTotal;
+
+    // ==========================================
+    // PROFIL ADMINISTRATEUR
+    // ==========================================
+    
+    private HBox profileBox;
+    private Label lblAdminName;
+    private Label lblAdminEmail;
+    private HBox headerContainer;
+    private HBox mainLayout;
+
+    // ==========================================
+    // CONSTRUCTEUR
+    // ==========================================
 
     public AdminDashboardView() {
         this.setPadding(new Insets(0));
@@ -83,7 +104,7 @@ public class AdminDashboardView extends BorderPane {
         // ASSEMBLAGE PRINCIPAL
         // ==========================================
         
-        HBox mainLayout = new HBox();
+        mainLayout = new HBox();
         mainLayout.getChildren().addAll(sidebar, mainContent);
         HBox.setHgrow(mainContent, Priority.ALWAYS);
         
@@ -91,72 +112,76 @@ public class AdminDashboardView extends BorderPane {
     }
 
     // ==========================================
-    // CRÉATION DU MENU LATERAL
+    // CRÉATION DU MENU LATERAL AVEC SCROLL
     // ==========================================
     
     private void createSidebar() {
-        sidebar = new VBox(8);
-        sidebar.setPadding(new Insets(15, 12, 15, 12));
-        sidebar.setPrefWidth(260);
-        sidebar.setMinWidth(200);
-        sidebar.setMaxWidth(280);
+        // Conteneur principal du menu
+        sidebar = new VBox(0);
+        sidebar.setPrefWidth(MENU_WIDTH);
+        sidebar.setMinWidth(MENU_COLLAPSED_WIDTH);
+        sidebar.setMaxWidth(MENU_WIDTH);
         sidebar.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #1a237e, #0d1442); " +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);"
+            "-fx-background-color: linear-gradient(to bottom, #1a237e, #0d1442);"
         );
 
         // ==========================================
-        // BOUTON TOGGLE MENU
+        // BOUTON TOGGLE MENU (FIXE EN HAUT)
         // ==========================================
         
         btnToggleMenu = new Button("☰ Menu");
         btnToggleMenu.setMaxWidth(Double.MAX_VALUE);
         btnToggleMenu.setAlignment(Pos.CENTER_LEFT);
         btnToggleMenu.setStyle(
-            "-fx-background-color: transparent; " +
+            "-fx-background-color: rgba(255,255,255,0.05); " +
             "-fx-text-fill: white; " +
-            "-fx-font-size: 18px; " +
+            "-fx-font-size: 16px; " +
             "-fx-font-weight: bold; " +
             "-fx-cursor: hand; " +
-            "-fx-padding: 10 15;"
+            "-fx-padding: 8 15;"
         );
         btnToggleMenu.setOnMouseEntered(e -> btnToggleMenu.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.1); " +
+            "-fx-background-color: rgba(255,255,255,0.15); " +
             "-fx-text-fill: white; " +
-            "-fx-font-size: 18px; " +
+            "-fx-font-size: 16px; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
+            "-fx-background-radius: 0; " +
             "-fx-cursor: hand; " +
-            "-fx-padding: 10 15;"
+            "-fx-padding: 8 15;"
         ));
         btnToggleMenu.setOnMouseExited(e -> btnToggleMenu.setStyle(
-            "-fx-background-color: transparent; " +
+            "-fx-background-color: rgba(255,255,255,0.05); " +
             "-fx-text-fill: white; " +
-            "-fx-font-size: 18px; " +
+            "-fx-font-size: 16px; " +
             "-fx-font-weight: bold; " +
             "-fx-cursor: hand; " +
-            "-fx-padding: 10 15;"
+            "-fx-padding: 8 15;"
         ));
         btnToggleMenu.setOnAction(e -> toggleMenu());
 
         // ==========================================
-        // LOGO / TITRE
+        // LOGO / TITRE (FIXE EN HAUT)
         // ==========================================
         
-        VBox logoBox = new VBox(3);
+        VBox logoBox = new VBox(2);
         logoBox.setAlignment(Pos.CENTER);
-        logoBox.setPadding(new Insets(5, 0, 10, 0));
+        logoBox.setPadding(new Insets(8, 0, 10, 0));
+        logoBox.setStyle("-fx-background-color: rgba(255,255,255,0.03);");
+        logoBox.setMinHeight(70);
         
         Label lblLogo = new Label("📊");
-        lblLogo.setFont(Font.font("System", 35));
+        lblLogo.setFont(Font.font("System", 28));
+        lblLogo.setId("logoLabel");
         
         Label lblTitle = new Label("UAM e-Vote");
-        lblTitle.setFont(Font.font("System", FontWeight.BOLD, 18));
+        lblTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
         lblTitle.setStyle("-fx-text-fill: white;");
+        lblTitle.setId("titleLabel");
         
         Label lblSubtitle = new Label("Administration");
-        lblSubtitle.setFont(Font.font("System", 11));
+        lblSubtitle.setFont(Font.font("System", 10));
         lblSubtitle.setStyle("-fx-text-fill: #90a4ae;");
+        lblSubtitle.setId("subtitleLabel");
         
         logoBox.getChildren().addAll(lblLogo, lblTitle, lblSubtitle);
 
@@ -164,159 +189,187 @@ public class AdminDashboardView extends BorderPane {
         // SÉPARATEUR
         // ==========================================
         
-        Separator separator1 = new Separator();
-        separator1.setStyle("-fx-background-color: rgba(255,255,255,0.1);");
+        Separator separatorTop = new Separator();
+        separatorTop.setStyle("-fx-background-color: rgba(255,255,255,0.08);");
 
+        // ==========================================
+        // CONTENU SCROLLABLE DU MENU
+        // ==========================================
+        
+        sidebarContent = new VBox(5);
+        sidebarContent.setPadding(new Insets(5, 10, 10, 10));
+        
         // ==========================================
         // SECTION : GESTION DES UTILISATEURS
         // ==========================================
         
-        Label lblSection1 = new Label("👥 GESTION DES UTILISATEURS");
-        lblSection1.setStyle("-fx-text-fill: #78909c; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+        Label lblSection1 = new Label("👥");
+        lblSection1.setStyle("-fx-text-fill: #78909c; -fx-font-size: 9px; -fx-font-weight: bold; -fx-padding: 8 0 3 0;");
+        lblSection1.setId("section1");
+        lblSection1.setAlignment(Pos.CENTER);
         
-        // Configuration des boutons du menu
-        btnGestionElecteurs.setText("👥  Électeurs");
+        btnGestionElecteurs.setText("👥 Électeurs");
         btnGestionElecteurs.setTooltip(new Tooltip("Gérer les étudiants"));
         styleSidebarButton(btnGestionElecteurs);
+        btnGestionElecteurs.setId("btnElecteurs");
         
-        btnGestionEnseignantFiliere.setText("👨‍🏫  Enseignants");
+        btnGestionEnseignantFiliere.setText("👨‍🏫 Enseignants");
         btnGestionEnseignantFiliere.setTooltip(new Tooltip("Gérer les enseignants"));
         styleSidebarButton(btnGestionEnseignantFiliere);
+        btnGestionEnseignantFiliere.setId("btnEnseignants");
         
-        btnGestionAdministrateurs.setText("👤  Administrateurs");
+        btnGestionAdministrateurs.setText("👤 Administrateurs");
         btnGestionAdministrateurs.setTooltip(new Tooltip("Gérer les administrateurs"));
         styleSidebarButton(btnGestionAdministrateurs);
+        btnGestionAdministrateurs.setId("btnAdmins");
 
         // ==========================================
         // SECTION : GESTION DES ÉLECTIONS
         // ==========================================
         
-        Label lblSection2 = new Label("📋 GESTION DES ÉLECTIONS");
-        lblSection2.setStyle("-fx-text-fill: #78909c; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+        Label lblSection2 = new Label("📋");
+        lblSection2.setStyle("-fx-text-fill: #78909c; -fx-font-size: 9px; -fx-font-weight: bold; -fx-padding: 8 0 3 0;");
+        lblSection2.setId("section2");
+        lblSection2.setAlignment(Pos.CENTER);
         
-        btnGestionCandidat.setText("📋  Candidats");
+        btnGestionCandidat.setText("📋 Candidats");
         btnGestionCandidat.setTooltip(new Tooltip("Gérer les candidats"));
         styleSidebarButton(btnGestionCandidat);
+        btnGestionCandidat.setId("btnCandidats");
         
-        btnGestionElection.setText("🏛️  Scrutins");
+        btnGestionElection.setText("🏛️ Scrutins");
         btnGestionElection.setTooltip(new Tooltip("Gérer les élections"));
         styleSidebarButton(btnGestionElection);
+        btnGestionElection.setId("btnElections");
 
         // ==========================================
         // SECTION : GESTION ACADÉMIQUE
         // ==========================================
         
-        Label lblSection3 = new Label("🎓 GESTION ACADÉMIQUE");
-        lblSection3.setStyle("-fx-text-fill: #78909c; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+        Label lblSection3 = new Label("🎓");
+        lblSection3.setStyle("-fx-text-fill: #78909c; -fx-font-size: 9px; -fx-font-weight: bold; -fx-padding: 8 0 3 0;");
+        lblSection3.setId("section3");
+        lblSection3.setAlignment(Pos.CENTER);
         
-        btnGestionUfr.setText("🏛️  UFRs");
+        btnGestionUfr.setText("🏛️ UFRs");
         btnGestionUfr.setTooltip(new Tooltip("Gérer les UFRs"));
         styleSidebarButton(btnGestionUfr);
+        btnGestionUfr.setId("btnUfrs");
         
-        btnGestionDepartement.setText("🏛️  Départements");
+        btnGestionDepartement.setText("🏛️ Départements");
         btnGestionDepartement.setTooltip(new Tooltip("Gérer les départements"));
         styleSidebarButton(btnGestionDepartement);
+        btnGestionDepartement.setId("btnDepartements");
         
-        btnGestionFiliere.setText("🏛️  Filières");
+        btnGestionFiliere.setText("🏛️ Filières");
         btnGestionFiliere.setTooltip(new Tooltip("Gérer les filières"));
         styleSidebarButton(btnGestionFiliere);
+        btnGestionFiliere.setId("btnFilieres");
 
         // ==========================================
         // SECTION : STATISTIQUES
         // ==========================================
         
-        Label lblSection4 = new Label("📊 STATISTIQUES");
-        lblSection4.setStyle("-fx-text-fill: #78909c; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+        Label lblSection4 = new Label("📊");
+        lblSection4.setStyle("-fx-text-fill: #78909c; -fx-font-size: 9px; -fx-font-weight: bold; -fx-padding: 8 0 3 0;");
+        lblSection4.setId("section4");
+        lblSection4.setAlignment(Pos.CENTER);
         
-        btnStatistiques.setText("📊  Statistiques");
+        btnStatistiques.setText("📊 Statistiques");
         btnStatistiques.setTooltip(new Tooltip("Consulter les statistiques"));
         styleSidebarButton(btnStatistiques);
+        btnStatistiques.setId("btnStats");
 
         // ==========================================
         // SÉPARATEUR
         // ==========================================
         
-        Separator separator2 = new Separator();
-        separator2.setStyle("-fx-background-color: rgba(255,255,255,0.1);");
+        Separator separatorBottom = new Separator();
+        separatorBottom.setStyle("-fx-background-color: rgba(255,255,255,0.08);");
 
         // ==========================================
         // BOUTON RAFRAÎCHIR
         // ==========================================
         
-        btnRafraichir.setText("🔄  Rafraîchir");
+        btnRafraichir.setText("🔄 Rafraîchir");
         btnRafraichir.setMaxWidth(Double.MAX_VALUE);
         btnRafraichir.setStyle(
             "-fx-background-color: #005088; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
-            "-fx-padding: 10; " +
+            "-fx-font-size: 12px; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 6; " +
             "-fx-cursor: hand;"
         );
         btnRafraichir.setOnMouseEntered(e -> btnRafraichir.setStyle(
             "-fx-background-color: #003d66; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
-            "-fx-padding: 10; " +
+            "-fx-font-size: 12px; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 6; " +
             "-fx-cursor: hand;"
         ));
         btnRafraichir.setOnMouseExited(e -> btnRafraichir.setStyle(
             "-fx-background-color: #005088; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
-            "-fx-padding: 10; " +
+            "-fx-font-size: 12px; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 6; " +
             "-fx-cursor: hand;"
         ));
+        btnRafraichir.setId("btnRafraichir");
 
         // ==========================================
         // BOUTON DÉCONNEXION
         // ==========================================
         
-        btnRetourConnexion.setText("🚪  Déconnexion");
+        btnRetourConnexion.setText("🚪 Déconnexion");
         btnRetourConnexion.setTooltip(new Tooltip("Se déconnecter"));
         btnRetourConnexion.setMaxWidth(Double.MAX_VALUE);
         btnRetourConnexion.setStyle(
             "-fx-background-color: #c0392b; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
-            "-fx-padding: 10; " +
+            "-fx-font-size: 12px; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 6; " +
             "-fx-cursor: hand;"
         );
         btnRetourConnexion.setOnMouseEntered(e -> btnRetourConnexion.setStyle(
             "-fx-background-color: #e74c3c; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
-            "-fx-padding: 10; " +
+            "-fx-font-size: 12px; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 6; " +
             "-fx-cursor: hand;"
         ));
         btnRetourConnexion.setOnMouseExited(e -> btnRetourConnexion.setStyle(
             "-fx-background-color: #c0392b; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-background-radius: 8; " +
-            "-fx-padding: 10; " +
+            "-fx-font-size: 12px; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 6; " +
             "-fx-cursor: hand;"
         ));
+        btnRetourConnexion.setId("btnDeconnexion");
 
         // ==========================================
-        // ESPACEUR
+        // ESPACEUR POUR POUSSER VERS LE BAS
         // ==========================================
         
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
         // ==========================================
-        // ASSEMBLAGE DU MENU
+        // ASSEMBLAGE DU CONTENU SCROLLABLE
         // ==========================================
         
-        sidebar.getChildren().addAll(
-            btnToggleMenu,
-            logoBox,
-            separator1,
+        sidebarContent.getChildren().addAll(
             lblSection1,
             btnGestionElecteurs,
             btnGestionEnseignantFiliere,
@@ -330,11 +383,38 @@ public class AdminDashboardView extends BorderPane {
             btnGestionFiliere,
             lblSection4,
             btnStatistiques,
-            separator2,
             spacer,
+            separatorBottom,
             btnRafraichir,
             btnRetourConnexion
         );
+
+        // ==========================================
+        // SCROLLPANE POUR LE MENU
+        // ==========================================
+        
+        sidebarScroll = new ScrollPane(sidebarContent);
+        sidebarScroll.setFitToWidth(true);
+        sidebarScroll.setStyle(
+            "-fx-background: transparent; " +
+            "-fx-background-color: transparent; " +
+            "-fx-border-color: transparent; " +
+            "-fx-padding: 0;"
+        );
+        sidebarScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sidebarScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+        // ==========================================
+        // ASSEMBLAGE FINAL DU MENU
+        // ==========================================
+        
+        sidebar.getChildren().addAll(
+            btnToggleMenu,
+            logoBox,
+            separatorTop,
+            sidebarScroll
+        );
+        VBox.setVgrow(sidebarScroll, Priority.ALWAYS);
     }
 
     // ==========================================
@@ -344,13 +424,13 @@ public class AdminDashboardView extends BorderPane {
     private void styleSidebarButton(Button button) {
         button.setMaxWidth(Double.MAX_VALUE);
         button.setAlignment(Pos.CENTER_LEFT);
-        button.setPadding(new Insets(8, 15, 8, 15));
+        button.setPadding(new Insets(5, 12, 5, 12));
         button.setStyle(
             "-fx-background-color: transparent; " +
             "-fx-text-fill: #b0bec5; " +
-            "-fx-font-size: 13px; " +
+            "-fx-font-size: 12px; " +
             "-fx-font-weight: normal; " +
-            "-fx-background-radius: 6; " +
+            "-fx-background-radius: 4; " +
             "-fx-cursor: hand;"
         );
         
@@ -358,16 +438,16 @@ public class AdminDashboardView extends BorderPane {
             button.setStyle(
                 "-fx-background-color: rgba(255,255,255,0.1); " +
                 "-fx-text-fill: white; " +
-                "-fx-font-size: 13px; " +
+                "-fx-font-size: 12px; " +
                 "-fx-font-weight: bold; " +
-                "-fx-background-radius: 6; " +
+                "-fx-background-radius: 4; " +
                 "-fx-cursor: hand;"
             );
-            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), button);
+            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(120), button);
             scaleIn.setFromX(1.0);
             scaleIn.setFromY(1.0);
-            scaleIn.setToX(1.03);
-            scaleIn.setToY(1.03);
+            scaleIn.setToX(1.02);
+            scaleIn.setToY(1.02);
             scaleIn.playFromStart();
         });
         
@@ -375,9 +455,9 @@ public class AdminDashboardView extends BorderPane {
             button.setStyle(
                 "-fx-background-color: transparent; " +
                 "-fx-text-fill: #b0bec5; " +
-                "-fx-font-size: 13px; " +
+                "-fx-font-size: 12px; " +
                 "-fx-font-weight: normal; " +
-                "-fx-background-radius: 6; " +
+                "-fx-background-radius: 4; " +
                 "-fx-cursor: hand;"
             );
             button.setScaleX(1.0);
@@ -390,34 +470,16 @@ public class AdminDashboardView extends BorderPane {
     // ==========================================
     
     private VBox createMainContent() {
-        VBox content = new VBox(20);
-        content.setPadding(new Insets(25));
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(20));
         content.setMaxWidth(1400);
         content.setAlignment(Pos.TOP_CENTER);
 
         // ==========================================
-        // EN-TÊTE
+        // EN-TÊTE AVEC PROFIL ADMIN
         // ==========================================
         
-        VBox header = new VBox(5);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(20, 30, 20, 30));
-        header.setStyle(
-            "-fx-background-color: linear-gradient(to right, rgb(210, 67, 67), #c74a2b); " +
-            "-fx-background-radius: 16; " +
-            "-fx-effect: dropshadow(three-pass-box, rgba(26, 71, 126, 0.3), 15, 0, 0, 4);"
-        );
-        
-        Label title = new Label("📊 Tableau de bord administrateur");
-        title.setFont(Font.font("System", FontWeight.BOLD, 26));
-        title.setStyle("-fx-text-fill: white;");
-
-        Label subtitle = new Label("Bienvenue dans votre espace de gestion. Utilisez le menu latéral pour accéder à toutes les fonctionnalités.");
-        subtitle.setFont(Font.font("System", 14));
-        subtitle.setStyle("-fx-text-fill: #f3f4f4;");
-        subtitle.setWrapText(true);
-
-        header.getChildren().addAll(title, subtitle);
+        headerContainer = createHeaderWithProfile();
 
         // ==========================================
         // STATISTIQUES - GRID 3x2
@@ -425,8 +487,257 @@ public class AdminDashboardView extends BorderPane {
         
         GridPane statsGrid = createStatisticsGrid();
 
-        content.getChildren().addAll(header, statsGrid);
+        content.getChildren().addAll(headerContainer, statsGrid);
         return content;
+    }
+
+    // ==========================================
+    // CRÉATION DE L'EN-TÊTE AVEC PROFIL
+    // ==========================================
+    
+    private HBox createHeaderWithProfile() {
+        HBox headerContainer = new HBox();
+        headerContainer.setAlignment(Pos.CENTER_LEFT);
+        headerContainer.setSpacing(15);
+        headerContainer.setPadding(new Insets(10, 20, 10, 20));
+        headerContainer.setStyle(
+            "-fx-background-color: linear-gradient(to right, #1a237e, #283593); " +
+            "-fx-background-radius: 12; " +
+            "-fx-effect: dropshadow(three-pass-box, rgba(26, 71, 126, 0.3), 12, 0, 0, 4);"
+        );
+        
+        // Titre à gauche
+        VBox titleBox = new VBox(2);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label title = new Label("📊 Tableau de bord administrateur");
+        title.setFont(Font.font("System", FontWeight.BOLD, 20));
+        title.setStyle("-fx-text-fill: white;");
+
+        Label subtitle = new Label("Bienvenue dans votre espace de gestion. Utilisez le menu latéral pour accéder à toutes les fonctionnalités.");
+        subtitle.setFont(Font.font("System", 11));
+        subtitle.setStyle("-fx-text-fill: #b0bec5;");
+        subtitle.setWrapText(true);
+        
+        titleBox.getChildren().addAll(title, subtitle);
+        
+        // Espaceur
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        // ==========================================
+        // PROFIL ADMINISTRATEUR (À DROITE)
+        // ==========================================
+        
+        profileBox = createProfileBox();
+        
+        headerContainer.getChildren().addAll(titleBox, spacer, profileBox);
+        return headerContainer;
+    }
+
+    // ==========================================
+    // CRÉATION DU PROFIL ADMINISTRATEUR
+    // ==========================================
+    
+    private HBox createProfileBox() {
+        HBox profileBox = new HBox(10);
+        profileBox.setAlignment(Pos.CENTER_RIGHT);
+        profileBox.setPadding(new Insets(5, 0, 5, 0));
+        profileBox.setStyle("-fx-cursor: hand;");
+        
+        // Avatar circulaire avec initiales ou icône
+        Circle avatarCircle = new Circle(22);
+        avatarCircle.setFill(Color.web("#4CAF50"));
+        avatarCircle.setStroke(Color.WHITE);
+        avatarCircle.setStrokeWidth(2);
+        
+        // Image ou label pour l'avatar
+        Label avatarLabel = new Label("👤");
+        avatarLabel.setFont(Font.font("System", 18));
+        avatarLabel.setStyle("-fx-text-fill: white;");
+        
+        StackPane avatarPane = new StackPane(avatarCircle, avatarLabel);
+        
+        // Informations de l'admin
+        VBox infoBox = new VBox(1);
+        infoBox.setAlignment(Pos.CENTER_LEFT);
+        
+        lblAdminName = new Label("Administrateur");
+        lblAdminName.setFont(Font.font("System", FontWeight.BOLD, 13));
+        lblAdminName.setStyle("-fx-text-fill: white;");
+        
+        lblAdminEmail = new Label("admin@uam.edu.sn");
+        lblAdminEmail.setFont(Font.font("System", 10));
+        lblAdminEmail.setStyle("-fx-text-fill: #90a4ae;");
+        
+        infoBox.getChildren().addAll(lblAdminName, lblAdminEmail);
+        
+        // Flèche vers le bas pour indiquer le menu
+        Label arrowLabel = new Label("▼");
+        arrowLabel.setFont(Font.font("System", 10));
+        arrowLabel.setStyle("-fx-text-fill: #90a4ae;");
+        
+        profileBox.getChildren().addAll(avatarPane, infoBox, arrowLabel);
+        
+        // Effet au survol
+        profileBox.setOnMouseEntered(e -> {
+            profileBox.setStyle(
+                "-fx-cursor: hand; " +
+                "-fx-background-color: rgba(255,255,255,0.1); " +
+                "-fx-background-radius: 8; " +
+                "-fx-padding: 5;"
+            );
+        });
+        profileBox.setOnMouseExited(e -> {
+            profileBox.setStyle("-fx-cursor: hand; -fx-padding: 5;");
+        });
+        
+        // Click pour ouvrir le menu de profil
+        profileBox.setOnMouseClicked(e -> afficherMenuProfil());
+        
+        return profileBox;
+    }
+
+    // ==========================================
+    // MENU DE PROFIL (POPUP) - CORRIGÉ
+    // ==========================================
+    
+    private void afficherMenuProfil() {
+        ContextMenu contextMenu = new ContextMenu();
+        
+        MenuItem itemProfil = new MenuItem("👤 Mon Profil");
+        itemProfil.setStyle("-fx-font-size: 12px; -fx-padding: 8 15;");
+        itemProfil.setOnAction(e -> afficherDetailsProfil());
+        
+        MenuItem itemParametres = new MenuItem("⚙️ Paramètres");
+        itemParametres.setStyle("-fx-font-size: 12px; -fx-padding: 8 15;");
+        itemParametres.setOnAction(e -> afficherParametres());
+        
+        SeparatorMenuItem separator = new SeparatorMenuItem();
+        
+        MenuItem itemDeconnexion = new MenuItem("🚪 Déconnexion");
+        itemDeconnexion.setStyle("-fx-font-size: 12px; -fx-padding: 8 15; -fx-text-fill: #e74c3c;");
+        // ✅ CORRECTION : Appel direct à la méthode de déconnexion
+        itemDeconnexion.setOnAction(e -> {
+            // Demander confirmation avant de se déconnecter
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Déconnexion");
+            confirm.setHeaderText("Voulez-vous vraiment vous déconnecter ?");
+            confirm.setContentText("Vous serez redirigé vers la page de connexion.");
+            
+            // Personnalisation des boutons
+            DialogPane dialogPane = confirm.getDialogPane();
+            dialogPane.setStyle("-fx-background-color: white;");
+            
+            Button yesButton = (Button) dialogPane.lookupButton(ButtonType.YES);
+            Button noButton = (Button) dialogPane.lookupButton(ButtonType.NO);
+            
+            if (yesButton != null) {
+                yesButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold;");
+            }
+            if (noButton != null) {
+                noButton.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold;");
+            }
+            
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.YES) {
+                    // ✅ Déclencher la déconnexion
+                    if (btnRetourConnexion != null) {
+                        btnRetourConnexion.fire();
+                    } else {
+                        // Fallback : redirection directe
+                        retournerConnexion();
+                    }
+                }
+            });
+        });
+        
+        contextMenu.getItems().addAll(itemProfil, itemParametres, separator, itemDeconnexion);
+        contextMenu.show(profileBox, 
+            profileBox.localToScreen(0, profileBox.getHeight()).getX(),
+            profileBox.localToScreen(0, profileBox.getHeight()).getY()
+        );
+    }
+
+    // ==========================================
+    // MÉTHODE DE RETOUR À LA CONNEXION (FALLBACK)
+    // ==========================================
+    
+    private void retournerConnexion() {
+        try {
+            Stage stage = (Stage) this.getScene().getWindow();
+            LoginView loginView = new LoginView();
+            LoginController loginController = new LoginController(loginView);
+            Scene scene = new Scene(loginController, 1400, 700);
+            stage.setTitle("UAM e-Vote - Connexion");
+            stage.setScene(scene);
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText(null);
+            alert.setContentText("Impossible de revenir à la page de connexion : " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    // ==========================================
+    // AFFICHAGE DES DÉTAILS DU PROFIL
+    // ==========================================
+    
+    private void afficherDetailsProfil() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("👤 Mon Profil");
+        alert.setHeaderText("Informations de l'administrateur");
+        
+        String details = "📋 **Informations personnelles**\n\n" +
+                         "👤 Nom : " + lblAdminName.getText() + "\n" +
+                         "📧 Email : " + lblAdminEmail.getText() + "\n" +
+                         "🔑 Rôle : Administrateur\n\n" +
+                         "📊 **Statistiques**\n" +
+                         "🕐 Dernière connexion : " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "\n" +
+                         "💻 Session active depuis : " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        
+        alert.setContentText(details);
+        
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: white;");
+        for (ButtonType buttonType : dialogPane.getButtonTypes()) {
+            Button btn = (Button) dialogPane.lookupButton(buttonType);
+            if (btn != null) {
+                btn.setStyle("-fx-background-color: #005088; -fx-text-fill: white; -fx-font-weight: bold;");
+            }
+        }
+        
+        alert.showAndWait();
+    }
+
+    private void afficherParametres() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("⚙️ Paramètres");
+        alert.setHeaderText("Paramètres du compte");
+        alert.setContentText("Fonctionnalité en cours de développement...");
+        alert.showAndWait();
+    }
+
+    // ==========================================
+    // MISE À JOUR DES INFORMATIONS DU PROFIL
+    // ==========================================
+    
+    public void setAdminInfo(String nom, String prenom, String email) {
+        if (lblAdminName != null) {
+            lblAdminName.setText(prenom + " " + nom);
+        }
+        if (lblAdminEmail != null) {
+            lblAdminEmail.setText(email);
+        }
+    }
+
+    public void setAdminInfo(Admin admin) {
+        if (admin != null) {
+            setAdminInfo(admin.getNom(), admin.getPrenom(), admin.getEmail());
+        }
     }
 
     // ==========================================
@@ -435,10 +746,10 @@ public class AdminDashboardView extends BorderPane {
     
     private GridPane createStatisticsGrid() {
         GridPane statsGrid = new GridPane();
-        statsGrid.setHgap(14);
-        statsGrid.setVgap(14);
+        statsGrid.setHgap(12);
+        statsGrid.setVgap(12);
         statsGrid.setAlignment(Pos.CENTER);
-        statsGrid.setPadding(new Insets(10, 0, 10, 0));
+        statsGrid.setPadding(new Insets(5, 0, 5, 0));
         
         for (int i = 0; i < 3; i++) {
             ColumnConstraints col = new ColumnConstraints();
@@ -475,34 +786,34 @@ public class AdminDashboardView extends BorderPane {
     // ==========================================
     
     private VBox createStatCard(String icon, String label, String value, String color, String bgColor) {
-        VBox card = new VBox(3);
-        card.setPadding(new Insets(14, 16, 14, 16));
-        card.setPrefWidth(180);
-        card.setPrefHeight(85);
+        VBox card = new VBox(2);
+        card.setPadding(new Insets(10, 14, 10, 14));
+        card.setPrefWidth(160);
+        card.setPrefHeight(70);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setStyle(
             "-fx-background-color: " + bgColor + "; " +
-            "-fx-background-radius: 14; " +
+            "-fx-background-radius: 10; " +
             "-fx-border-color: " + color + "; " +
             "-fx-border-width: 1.5; " +
-            "-fx-border-radius: 14; " +
+            "-fx-border-radius: 10; " +
             "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.04), 6, 0, 0, 2);"
         );
 
-        HBox topRow = new HBox(10);
+        HBox topRow = new HBox(8);
         topRow.setAlignment(Pos.CENTER_LEFT);
         
         Label iconLabel = new Label(icon);
-        iconLabel.setFont(Font.font("System", 18));
+        iconLabel.setFont(Font.font("System", 16));
         
         Label valueLabel = new Label(value);
-        valueLabel.setFont(Font.font("System", FontWeight.BOLD, 24));
+        valueLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
         valueLabel.setStyle("-fx-text-fill: " + color + ";");
         
         topRow.getChildren().addAll(iconLabel, valueLabel);
         
         Label titleLabel = new Label(label);
-        titleLabel.setFont(Font.font("System", 13));
+        titleLabel.setFont(Font.font("System", 11));
         titleLabel.setStyle("-fx-text-fill: #374151; -fx-font-weight: bold;");
         
         card.getChildren().addAll(topRow, titleLabel);
@@ -516,21 +827,128 @@ public class AdminDashboardView extends BorderPane {
     private void toggleMenu() {
         isMenuVisible = !isMenuVisible;
         
-        TranslateTransition transition = new TranslateTransition(Duration.millis(300), sidebar);
-        
         if (isMenuVisible) {
-            transition.setToX(0);
+            // AGRANDIR LE MENU
+            sidebar.setPrefWidth(MENU_WIDTH);
+            sidebar.setMinWidth(MENU_WIDTH);
+            sidebar.setMaxWidth(MENU_WIDTH);
+            
+            TranslateTransition expand = new TranslateTransition(Duration.millis(300), sidebar);
+            expand.setToX(0);
+            expand.play();
+            
             btnToggleMenu.setText("☰ Menu");
-            sidebar.setPrefWidth(260);
-            sidebar.setMinWidth(200);
+            showFullMenu(true);
+            
         } else {
-            transition.setToX(-sidebar.getWidth() + 55);
+            // RÉDUIRE LE MENU
+            sidebar.setPrefWidth(MENU_COLLAPSED_WIDTH);
+            sidebar.setMinWidth(MENU_COLLAPSED_WIDTH);
+            sidebar.setMaxWidth(MENU_COLLAPSED_WIDTH);
+            
+            TranslateTransition collapse = new TranslateTransition(Duration.millis(300), sidebar);
+            collapse.setToX(0);
+            collapse.play();
+            
             btnToggleMenu.setText("☰");
-            sidebar.setPrefWidth(55);
-            sidebar.setMinWidth(55);
+            showFullMenu(false);
+        }
+    }
+
+    private void showFullMenu(boolean show) {
+        // Gérer les sections (labels)
+        String[] sectionIds = {"section1", "section2", "section3", "section4"};
+        for (String id : sectionIds) {
+            Label lbl = (Label) sidebar.lookup("#" + id);
+            if (lbl != null) {
+                if (show) {
+                    switch(id) {
+                        case "section1": lbl.setText("👥 UTILISATEURS"); break;
+                        case "section2": lbl.setText("📋 ÉLECTIONS"); break;
+                        case "section3": lbl.setText("🎓 ACADÉMIQUE"); break;
+                        case "section4": lbl.setText("📊 STATISTIQUES"); break;
+                    }
+                    lbl.setAlignment(Pos.CENTER_LEFT);
+                } else {
+                    switch(id) {
+                        case "section1": lbl.setText("👥"); break;
+                        case "section2": lbl.setText("📋"); break;
+                        case "section3": lbl.setText("🎓"); break;
+                        case "section4": lbl.setText("📊"); break;
+                    }
+                    lbl.setAlignment(Pos.CENTER);
+                }
+                lbl.setVisible(true);
+                lbl.setManaged(true);
+            }
+        }
+
+        // Gérer les boutons
+        String[] buttonIds = {
+            "btnElecteurs", "btnEnseignants", "btnAdmins",
+            "btnCandidats", "btnElections",
+            "btnUfrs", "btnDepartements", "btnFilieres",
+            "btnStats", "btnRafraichir", "btnDeconnexion"
+        };
+        
+        for (String id : buttonIds) {
+            Button btn = (Button) sidebar.lookup("#" + id);
+            if (btn != null) {
+                if (show) {
+                    switch(id) {
+                        case "btnElecteurs": btn.setText("👥 Électeurs"); break;
+                        case "btnEnseignants": btn.setText("👨‍🏫 Enseignants"); break;
+                        case "btnAdmins": btn.setText("👤 Administrateurs"); break;
+                        case "btnCandidats": btn.setText("📋 Candidats"); break;
+                        case "btnElections": btn.setText("🏛️ Scrutins"); break;
+                        case "btnUfrs": btn.setText("🏛️ UFRs"); break;
+                        case "btnDepartements": btn.setText("🏛️ Départements"); break;
+                        case "btnFilieres": btn.setText("🏛️ Filières"); break;
+                        case "btnStats": btn.setText("📊 Statistiques"); break;
+                        case "btnRafraichir": btn.setText("🔄 Rafraîchir"); break;
+                        case "btnDeconnexion": btn.setText("🚪 Déconnexion"); break;
+                    }
+                    btn.setAlignment(Pos.CENTER_LEFT);
+                } else {
+                    switch(id) {
+                        case "btnElecteurs": btn.setText("👥"); break;
+                        case "btnEnseignants": btn.setText("👨‍🏫"); break;
+                        case "btnAdmins": btn.setText("👤"); break;
+                        case "btnCandidats": btn.setText("📋"); break;
+                        case "btnElections": btn.setText("🏛️"); break;
+                        case "btnUfrs": btn.setText("🏛️"); break;
+                        case "btnDepartements": btn.setText("🏛️"); break;
+                        case "btnFilieres": btn.setText("🏛️"); break;
+                        case "btnStats": btn.setText("📊"); break;
+                        case "btnRafraichir": btn.setText("🔄"); break;
+                        case "btnDeconnexion": btn.setText("🚪"); break;
+                    }
+                    btn.setAlignment(Pos.CENTER);
+                }
+                btn.setVisible(true);
+                btn.setManaged(true);
+            }
+        }
+
+        // Gérer le logo
+        Label logoLabel = (Label) sidebar.lookup("#logoLabel");
+        Label titleLabel = (Label) sidebar.lookup("#titleLabel");
+        Label subtitleLabel = (Label) sidebar.lookup("#subtitleLabel");
+        
+        if (logoLabel != null) {
+            logoLabel.setVisible(true);
+            logoLabel.setManaged(true);
         }
         
-        transition.play();
+        if (titleLabel != null) {
+            titleLabel.setVisible(show);
+            titleLabel.setManaged(show);
+        }
+        
+        if (subtitleLabel != null) {
+            subtitleLabel.setVisible(show);
+            subtitleLabel.setManaged(show);
+        }
     }
 
     // ==========================================
@@ -593,6 +1011,18 @@ public class AdminDashboardView extends BorderPane {
     
     public Button getBtnRafraichir() { 
         return btnRafraichir; 
+    }
+
+    public HBox getProfileBox() {
+        return profileBox;
+    }
+
+    public Label getLblAdminName() {
+        return lblAdminName;
+    }
+
+    public Label getLblAdminEmail() {
+        return lblAdminEmail;
     }
 
     // ==========================================

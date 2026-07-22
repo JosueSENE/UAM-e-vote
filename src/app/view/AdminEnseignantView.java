@@ -1,6 +1,6 @@
 package app.view;
 
-import app.model.Admin;
+import app.model.User;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -9,21 +9,23 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class AdminManagementView extends BorderPane {
+public class AdminEnseignantView extends BorderPane {
 
     // ==========================================
     // TABLE
     // ==========================================
     
-    private TableView<Admin> tableAdmins;
-    private TableColumn<Admin, Integer> colId;
-    private TableColumn<Admin, Integer> colCodePermanent;
-    private TableColumn<Admin, String> colNom;
-    private TableColumn<Admin, String> colPrenom;
-    private TableColumn<Admin, String> colEmail;
-    private TableColumn<Admin, String> colLogin;
-    private TableColumn<Admin, String> colUfr;
-    private TableColumn<Admin, String> colStatus;
+    private TableView<User> tableEnseignants;
+    private TableColumn<User, Integer> colId;
+    private TableColumn<User, Integer> colCodePermanent;
+    private TableColumn<User, String> colNom;
+    private TableColumn<User, String> colPrenom;
+    private TableColumn<User, String> colEmail;
+    private TableColumn<User, String> colLogin;
+    private TableColumn<User, String> colUfr;
+    private TableColumn<User, String> colDepartement;
+    private TableColumn<User, String> colFilieres;
+    private TableColumn<User, String> colStatus;
 
     // ==========================================
     // CHAMPS DE RECHERCHE
@@ -42,6 +44,8 @@ public class AdminManagementView extends BorderPane {
     private TextField txtLogin;
     private TextField txtPassword;
     private ComboBox<String> comboUfr;
+    private ComboBox<String> comboDepartement;
+    private ListView<String> listFilieres;
     private CheckBox chkActif;
 
     // ==========================================
@@ -56,17 +60,146 @@ public class AdminManagementView extends BorderPane {
     private Button btnRefresh;
 
     // ==========================================
-    // CONSTANTES
+    // DONNÉES RÉELLES DE L'UAM
     // ==========================================
     
+    // UFR
     private static final String[] UFR_LIST = {"POLYTECHNIQUE", "UFR SEG", "UFR STA", "UFR TECNA"};
+    
+    // Départements - POLYTECHNIQUE
+    private static final String[] DEPARTEMENTS_POLY = {
+        "Sciences et Techniques de l'Ingénieur (DSTI)",
+        "Sciences et Techniques Agronomiques, Alimentaires et Nutritionnelles (DST2AN)",
+        "Gestion des Organisations (DGO)",
+        "Urbanisme, Architecture, Aménagement Durable des Territoires (DU2ADT)",
+        "Géosciences Appliquées et Environnement (DGAE)"
+    };
+    
+    // Départements - UFR SEG
+    private static final String[] DEPARTEMENTS_SEG = {
+        "Économie",
+        "Gestion"
+    };
+    
+    // Départements - UFR STA
+    private static final String[] DEPARTEMENTS_STA = {
+        "Mathématiques, Informatique et Modélisation",
+        "Sciences de la Mer et du Littoral"
+    };
+    
+    // Départements - UFR TECNA
+    private static final String[] DEPARTEMENTS_TECNA = {
+        "Communication Numérique",
+        "Audiovisuel",
+        "Informatique des Médias",
+        "Multimédia"
+    };
+    
+    // ==========================================
+    // FILIÈRES PAR DÉPARTEMENT
+    // ==========================================
+    
+    // DSTI - Sciences et Techniques de l'Ingénieur
+    private static final String[] FILIERES_DSTI = {
+        "Génie des Procédés",
+        "Infrastructures et Génie Civil",
+        "Ingénierie Informatique",
+        "Électronique et Télécommunications",
+        "Systèmes Électriques et Énergétiques"
+    };
+    
+    // DST2AN - Sciences et Techniques Agronomiques
+    private static final String[] FILIERES_DST2AN = {
+        "Agroécologie et Productions Végétales",
+        "Productions Animales et Systèmes d'Élevage Durables",
+        "Technologies Agroalimentaires Durables",
+        "Leadership, Innovation et Conseil Agroenvironnemental"
+    };
+    
+    // DGO - Gestion des Organisations
+    private static final String[] FILIERES_DGO = {
+        "Finance et Comptabilité",
+        "Management des Organisations"
+    };
+    
+    // DU2ADT - Urbanisme, Architecture
+    private static final String[] FILIERES_DU2ADT = {
+        "Urbanisme",
+        "Architecture"
+    };
+    
+    // DGAE - Géosciences et Environnement
+    private static final String[] FILIERES_DGAE = {
+        "Environnement",
+        "Géomatique",
+        "Hydraulique et Assainissement",
+        "Mines et Géologie"
+    };
+    
+    // UFR STA - Mathématiques, Informatique et Modélisation
+    private static final String[] FILIERES_MIM = {
+        "Mathématiques - Physique - Informatique (MPI)",
+        "Mathématiques Appliquées aux Sciences Sociales (MASS)",
+        "Mathématiques",
+        "Physique",
+        "Informatique"
+    };
+    
+    // UFR STA - Sciences Physiques et Technologies
+    private static final String[] FILIERES_SMU = {
+        "Sciences Physiques",
+        "Science de la Mer et du Littoral"
+    };
+    
+    // UFR SEG - Économie
+    private static final String[] FILIERES_ECONOMIE = {
+        "Licence en Économie",
+        "Masters en Économie"
+    };
+    
+    // UFR SEG - Gestion
+    private static final String[] FILIERES_GESTION = {
+        "Finance-Comptabilité",
+        "Management des Organisations",
+        "Marketing",
+        "Comptabilité",
+        "Gestion Financière"
+    };
+    
+    // UFR TECNA - Communication Numérique
+    private static final String[] FILIERES_COMMUNICATION = {
+        "Communication Numérique",
+        "Journalisme Numérique"
+    };
+    
+    // UFR TECNA - Audiovisuel
+    private static final String[] FILIERES_AUDIOVISUEL = {
+        "Audiovisuel"
+    };
+    
+    // UFR TECNA - Multimédia
+    private static final String[] FILIERES_MULTIMEDIA = {
+        "Création Multimédia"
+    };
+    
+    // UFR TECNA - Informatique des Médias
+    private static final String[] FILIERES_MEDIAS = {
+        "Développement des Médias Numériques"
+    };
 
-    public AdminManagementView() {
+    // ==========================================
+    // CONSTRUCTEUR
+    // ==========================================
+
+    public AdminEnseignantView() {
         this.setPadding(new Insets(20));
         this.setStyle("-fx-background-color: #f0f2f5;");
         
         initLeftTableSection();
         initRightFormSection();
+        
+        // Initialisation
+        updateDepartementList();
     }
 
     // ==========================================
@@ -87,7 +220,7 @@ public class AdminManagementView extends BorderPane {
         btnRetour.setOnMouseEntered(e -> btnRetour.setStyle("-fx-background-color: #5a6268; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"));
         btnRetour.setOnMouseExited(e -> btnRetour.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"));
 
-        Label lblTitle = new Label("👤 Gestion des Administrateurs");
+        Label lblTitle = new Label("👨‍🏫 Gestion des Enseignants");
         lblTitle.setFont(Font.font("System", FontWeight.BOLD, 22));
         lblTitle.setStyle("-fx-text-fill: #005088;");
 
@@ -115,11 +248,11 @@ public class AdminManagementView extends BorderPane {
         headerBox.getChildren().addAll(btnRetour, lblTitle, spacer, searchBox);
 
         // ===== TABLE =====
-        tableAdmins = new TableView<>();
-        tableAdmins.setPlaceholder(new Label("📋 Aucun administrateur trouvé"));
-        tableAdmins.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        tableAdmins.setPrefHeight(550);
-        tableAdmins.setStyle("-fx-background-radius: 10; -fx-border-radius: 10;");
+        tableEnseignants = new TableView<>();
+        tableEnseignants.setPlaceholder(new Label("📋 Aucun enseignant trouvé"));
+        tableEnseignants.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableEnseignants.setPrefHeight(550);
+        tableEnseignants.setStyle("-fx-background-radius: 10; -fx-border-radius: 10;");
 
         // Colonnes
         colId = new TableColumn<>("ID");
@@ -134,15 +267,15 @@ public class AdminManagementView extends BorderPane {
 
         colNom = new TableColumn<>("Nom");
         colNom.setCellValueFactory(new PropertyValueFactory<>("nom"));
-        colNom.setPrefWidth(150);
+        colNom.setPrefWidth(120);
 
         colPrenom = new TableColumn<>("Prénom");
         colPrenom.setCellValueFactory(new PropertyValueFactory<>("prenom"));
-        colPrenom.setPrefWidth(150);
+        colPrenom.setPrefWidth(120);
 
         colEmail = new TableColumn<>("Email");
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colEmail.setPrefWidth(200);
+        colEmail.setPrefWidth(180);
 
         colLogin = new TableColumn<>("Login");
         colLogin.setCellValueFactory(new PropertyValueFactory<>("login"));
@@ -150,19 +283,27 @@ public class AdminManagementView extends BorderPane {
 
         colUfr = new TableColumn<>("UFR");
         colUfr.setCellValueFactory(new PropertyValueFactory<>("ufrNom"));
-        colUfr.setPrefWidth(120);
+        colUfr.setPrefWidth(100);
+
+        colDepartement = new TableColumn<>("Département");
+        colDepartement.setCellValueFactory(new PropertyValueFactory<>("departementNom"));
+        colDepartement.setPrefWidth(150);
+
+        colFilieres = new TableColumn<>("Filières");
+        colFilieres.setCellValueFactory(new PropertyValueFactory<>("filieresList"));
+        colFilieres.setPrefWidth(180);
 
         colStatus = new TableColumn<>("Statut");
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        colStatus.setPrefWidth(100);
+        colStatus.setPrefWidth(80);
         colStatus.setStyle("-fx-alignment: CENTER;");
 
-        tableAdmins.getColumns().addAll(
+        tableEnseignants.getColumns().addAll(
             colId, colCodePermanent, colNom, colPrenom, 
-            colEmail, colLogin, colUfr, colStatus
+            colEmail, colLogin, colUfr, colDepartement, colFilieres, colStatus
         );
 
-        leftBox.getChildren().addAll(headerBox, tableAdmins);
+        leftBox.getChildren().addAll(headerBox, tableEnseignants);
         this.setCenter(leftBox);
     }
 
@@ -171,15 +312,15 @@ public class AdminManagementView extends BorderPane {
     // ==========================================
 
     private void initRightFormSection() {
-        VBox formBox = new VBox(12);
+        VBox formBox = new VBox(10);
         formBox.setPadding(new Insets(20));
-        formBox.setPrefWidth(350);
+        formBox.setPrefWidth(420);
         formBox.setStyle("-fx-background-color: white; " +
                 "-fx-background-radius: 15; " +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 5);");
 
         // ===== TITRE =====
-        Label lblFormTitle = new Label("✏️ Informations Administrateur");
+        Label lblFormTitle = new Label("✏️ Informations Enseignant");
         lblFormTitle.setFont(Font.font("System", FontWeight.BOLD, 18));
         lblFormTitle.setStyle("-fx-text-fill: #005088;");
 
@@ -239,7 +380,32 @@ public class AdminManagementView extends BorderPane {
         comboUfr.setMaxWidth(Double.MAX_VALUE);
         comboUfr.setStyle("-fx-background-radius: 8; -fx-padding: 8 12;");
         comboUfr.setValue("POLYTECHNIQUE");
-        VBox fieldUfr = createFormField("🏛️ UFR", comboUfr);
+        comboUfr.setOnAction(e -> {
+            updateDepartementList();
+            listFilieres.getItems().clear();
+        });
+        VBox fieldUfr = createFormField("🏛️ UFR *", comboUfr);
+
+        // Département
+        comboDepartement = new ComboBox<>();
+        comboDepartement.setPromptText("Sélectionner un département");
+        comboDepartement.setMaxWidth(Double.MAX_VALUE);
+        comboDepartement.setStyle("-fx-background-radius: 8; -fx-padding: 8 12;");
+        comboDepartement.setOnAction(e -> updateFiliereList());
+        VBox fieldDepartement = createFormField("🏫 Département *", comboDepartement);
+
+        // Filières (multisélection)
+        Label lblFilieres = new Label("📚 Filières enseignées *");
+        lblFilieres.setFont(Font.font("System", FontWeight.SEMI_BOLD, 12));
+        lblFilieres.setStyle("-fx-text-fill: #555;");
+        
+        listFilieres = new ListView<>();
+        listFilieres.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        listFilieres.setPrefHeight(120);
+        listFilieres.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
+        
+        VBox fieldFilieres = new VBox(5);
+        fieldFilieres.getChildren().addAll(lblFilieres, listFilieres);
 
         // Actif
         chkActif = new CheckBox("Compte actif");
@@ -301,6 +467,8 @@ public class AdminManagementView extends BorderPane {
             fieldLogin,
             fieldPassword,
             fieldUfr,
+            fieldDepartement,
+            fieldFilieres,
             chkActif,
             new Separator(),
             gridButtons
@@ -309,6 +477,123 @@ public class AdminManagementView extends BorderPane {
         HBox rightBox = new HBox(formBox);
         rightBox.setPadding(new Insets(10));
         this.setRight(rightBox);
+    }
+
+    // ==========================================
+    // MÉTHODES DE MISE À JOUR DES LISTES
+    // ==========================================
+
+    /**
+     * Met à jour la liste des départements en fonction de l'UFR sélectionné
+     */
+    private void updateDepartementList() {
+        String ufr = comboUfr.getValue();
+        comboDepartement.getItems().clear();
+        listFilieres.getItems().clear();
+        
+        if (ufr == null) return;
+        
+        switch(ufr) {
+            case "POLYTECHNIQUE":
+                comboDepartement.getItems().addAll(DEPARTEMENTS_POLY);
+                break;
+            case "UFR SEG":
+                comboDepartement.getItems().addAll(DEPARTEMENTS_SEG);
+                break;
+            case "UFR STA":
+                comboDepartement.getItems().addAll(DEPARTEMENTS_STA);
+                break;
+            case "UFR TECNA":
+                comboDepartement.getItems().addAll(DEPARTEMENTS_TECNA);
+                break;
+        }
+        
+        if (!comboDepartement.getItems().isEmpty()) {
+            comboDepartement.setValue(comboDepartement.getItems().get(0));
+            updateFiliereList();
+        }
+    }
+
+    /**
+     * Met à jour la liste des filières en fonction du département sélectionné
+     */
+    private void updateFiliereList() {
+        String departement = comboDepartement.getValue();
+        listFilieres.getItems().clear();
+        
+        if (departement == null) return;
+        
+        switch(departement) {
+            // POLYTECHNIQUE - DSTI
+            case "Sciences et Techniques de l'Ingénieur (DSTI)":
+                listFilieres.getItems().addAll(FILIERES_DSTI);
+                break;
+                
+            // POLYTECHNIQUE - DST2AN
+            case "Sciences et Techniques Agronomiques, Alimentaires et Nutritionnelles (DST2AN)":
+                listFilieres.getItems().addAll(FILIERES_DST2AN);
+                break;
+                
+            // POLYTECHNIQUE - DGO
+            case "Gestion des Organisations (DGO)":
+                listFilieres.getItems().addAll(FILIERES_DGO);
+                break;
+                
+            // POLYTECHNIQUE - DU2ADT
+            case "Urbanisme, Architecture, Aménagement Durable des Territoires (DU2ADT)":
+                listFilieres.getItems().addAll(FILIERES_DU2ADT);
+                break;
+                
+            // POLYTECHNIQUE - DGAE
+            case "Géosciences Appliquées et Environnement (DGAE)":
+                listFilieres.getItems().addAll(FILIERES_DGAE);
+                break;
+                
+            // UFR STA - Mathématiques, Informatique et Modélisation
+            case "Mathématiques, Informatique et Modélisation":
+                listFilieres.getItems().addAll(FILIERES_MIM);
+                break;
+                
+            // UFR STA - Sciences Physiques et Technologies
+            case "Sciences Physiques et Technologies":
+                listFilieres.getItems().addAll(FILIERES_SMU);
+                break;
+                
+            // UFR SEG - Économie
+            case "Économie":
+                listFilieres.getItems().addAll(FILIERES_ECONOMIE);
+                break;
+                
+            // UFR SEG - Gestion
+            case "Gestion":
+                listFilieres.getItems().addAll(FILIERES_GESTION);
+                break;
+                
+            // UFR TECNA - Communication Numérique
+            case "Communication Numérique":
+                listFilieres.getItems().addAll(FILIERES_COMMUNICATION);
+                break;
+                
+            // UFR TECNA - Audiovisuel
+            case "Audiovisuel":
+                listFilieres.getItems().addAll(FILIERES_AUDIOVISUEL);
+                break;
+                
+            // UFR TECNA - Multimédia
+            case "Multimédia":
+                listFilieres.getItems().addAll(FILIERES_MULTIMEDIA);
+                break;
+                
+            // UFR TECNA - Informatique des Médias
+            case "Informatique des Médias":
+                listFilieres.getItems().addAll(FILIERES_MEDIAS);
+                break;
+                
+            default:
+                // Cas par défaut
+                listFilieres.getItems().add("Filière non définie");
+                break;
+        }
     }
 
     // ==========================================
@@ -343,14 +628,25 @@ public class AdminManagementView extends BorderPane {
         txtLogin.clear();
         txtPassword.clear();
         comboUfr.setValue("POLYTECHNIQUE");
+        updateDepartementList();
+        listFilieres.getSelectionModel().clearSelection();
         chkActif.setSelected(true);
+    }
+
+    public String getSelectedFilieresAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (String filiere : listFilieres.getSelectionModel().getSelectedItems()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(filiere);
+        }
+        return sb.toString();
     }
 
     // ==========================================
     // GETTERS
     // ==========================================
 
-    public TableView<Admin> getTableAdmins() { return tableAdmins; }
+    public TableView<User> getTableEnseignants() { return tableEnseignants; }
     public TextField getTxtSearch() { return txtSearch; }
     public TextField getTxtCodePermanent() { return txtCodePermanent; }
     public TextField getTxtNom() { return txtNom; }
@@ -359,6 +655,8 @@ public class AdminManagementView extends BorderPane {
     public TextField getTxtLogin() { return txtLogin; }
     public TextField getTxtPassword() { return txtPassword; }
     public ComboBox<String> getComboUfr() { return comboUfr; }
+    public ComboBox<String> getComboDepartement() { return comboDepartement; }
+    public ListView<String> getListFilieres() { return listFilieres; }
     public CheckBox getChkActif() { return chkActif; }
     public Button getBtnAjouter() { return btnAjouter; }
     public Button getBtnModifier() { return btnModifier; }

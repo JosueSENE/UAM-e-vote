@@ -2,14 +2,23 @@ package app.controller;
 
 import app.dao.*;
 import app.model.*;
+import app.view.StatisticsView;
+import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StatistiqueController {
+public class StatisticsController extends BorderPane {
 
+    // ==========================================
+    // DAO
+    // ==========================================
     private final UserDAO userDAO;
     private final VoteDAO voteDAO;
     private final ElectionDAO electionDAO;
@@ -17,9 +26,20 @@ public class StatistiqueController {
     private final UfrDAO ufrDAO;
     private final DepartementDAO departementDAO;
     private final FiliereDAO filiereDAO;
-    private final AdminDAO adminDAO; // Ajout pour les statistiques des admins
+    private final AdminDAO adminDAO;
+    private final StatisticsDAO statisticsDAO;
+    
+    // ==========================================
+    // VUE
+    // ==========================================
+    private final StatisticsView view;
 
-    public StatistiqueController() {
+    // ==========================================
+    // CONSTRUCTEUR
+    // ==========================================
+
+    public StatisticsController() {
+        // Initialisation des DAO
         this.userDAO = new UserDAO();
         this.voteDAO = new VoteDAO();
         this.electionDAO = new ElectionDAO();
@@ -27,50 +47,137 @@ public class StatistiqueController {
         this.ufrDAO = new UfrDAO();
         this.departementDAO = new DepartementDAO();
         this.filiereDAO = new FiliereDAO();
-        this.adminDAO = new AdminDAO(); // Initialisation
+        this.adminDAO = new AdminDAO();
+        this.statisticsDAO = new StatisticsDAO();
+        
+        // Initialisation de la vue
+        this.view = new StatisticsView();
+        this.setCenter(view);
+        
+        // Configuration des événements
+        configurerEvenements();
+        
+        // Chargement initial des données
+        chargerStatistiques();
     }
 
-    // =========================================================================
-    // 1. STATISTIQUES GLOBALES DU TABLEAU DE BORD (DASHBOARD)
-    // =========================================================================
+    // ==========================================
+    // CONFIGURATION DES ÉVÉNEMENTS
+    // ==========================================
+
+    private void configurerEvenements() {
+        // Bouton Retour
+        view.getBtnRetour().setOnAction(e -> retournerDashboard());
+        
+        // Bouton Rafraîchir
+        view.getBtnRafraichir().setOnAction(e -> chargerStatistiques());
+    }
+
+    // ==========================================
+    // CHARGEMENT DES STATISTIQUES
+    // ==========================================
+
+    private void chargerStatistiques() {
+        try {
+            System.out.println("🔄 Chargement des statistiques...");
+            
+            // 1. Charger les KPI via StatisticsDAO
+            StatisticsDAO.StatsData data = statisticsDAO.getStatsData();
+            view.updateKPIs(
+                data.getTotalVotes(),
+                data.getTotalElecteurs(),
+                data.getTauxParticipation(),
+                data.getEnLigne(),
+                data.getTotalElections(),
+                data.getElectionsOuvertes()
+            );
+
+            // 2. Charger les graphiques via StatisticsDAO
+            view.updateParticipationChart(statisticsDAO.getParticipationData());
+            view.updateResultatsChart(statisticsDAO.getResultatsData());
+            view.updateTendanceChart(statisticsDAO.getTendanceData());
+            view.updateRepartitionElecteursChart(statisticsDAO.getRepartitionElecteursData());
+
+            System.out.println("✅ Statistiques chargées avec succès !");
+            
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors du chargement des statistiques: " + e.getMessage());
+            e.printStackTrace();
+            afficherDonneesParDefaut();
+        }
+    }
+
+    // ==========================================
+    // DONNÉES PAR DÉFAUT (EN CAS D'ERREUR)
+    // ==========================================
+
+    private void afficherDonneesParDefaut() {
+        // KPI par défaut
+        view.updateKPIs(0, 0, 0.0, 0, 0, 0);
+        
+        // Graphiques vides
+        view.updateParticipationChart(new PieChart.Data("Aucune donnée", 1));
+        view.updateRepartitionElecteursChart(new PieChart.Data("Aucune donnée", 1));
+        
+        XYChart.Series<String, Number> emptySeries = new XYChart.Series<>();
+        emptySeries.setName("Aucune donnée");
+        emptySeries.getData().add(new XYChart.Data<>("", 0));
+        view.updateResultatsChart(emptySeries);
+        view.updateTendanceChart(emptySeries);
+    }
+
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
+
+    private void retournerDashboard() {
+        try {
+            Stage stage = (Stage) this.getScene().getWindow();
+            AdminDashboardController dashboard = new AdminDashboardController();
+            Scene scene = new Scene(dashboard, 1400, 700);
+            stage.setTitle("UAM e-Vote - Tableau de bord administrateur");
+            stage.setScene(scene);
+            stage.centerOnScreen();
+            System.out.println("✅ Retour au tableau de bord");
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors du retour au dashboard: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ==========================================
+    // STATISTIQUES GLOBALES (METHODES EXISTANTES)
+    // ==========================================
 
     /**
-     * Récupère un résumé complet des chiffres clés de l'application UAM e-Vote.
-     * Pratique pour remplir les cartes (cards) du tableau de bord.
+     * Récupère les statistiques globales pour le dashboard
      */
     public Map<String, Object> getDashboardSummary() {
         Map<String, Object> stats = new HashMap<>();
 
         try {
-            // Utilisateurs (exclut les admins)
             int totalUsers = userDAO.getTotalUsers();
             int totalEtudiants = userDAO.getTotalEtudiants();
             int totalEnseignants = userDAO.getTotalEnseignants();
-            int totalAdmins = getTotalAdmins();
+            int totalAdmins = adminDAO.getTotalAdmins();
 
-            // Votes et participation
             int totalVotants = voteDAO.getTotalVotants();
             int totalNonVotants = Math.max(0, totalUsers - totalVotants);
 
-            // Calcul du taux de participation global
             double tauxParticipation = (totalUsers > 0) 
                     ? ((double) totalVotants / totalUsers) * 100.0 
                     : 0.0;
 
-            // Structure académique
             int totalUfr = ufrDAO.getAllUfr().size();
             int totalDepartements = departementDAO.getAllDepartements().size();
             int totalFilieres = filiereDAO.getAllFilieres().size();
 
-            // Élections
             int totalElections = electionDAO.getAllElections().size();
             int electionsEnCours = electionDAO.getElectionsEnCours().size();
             int electionsTerminees = electionDAO.getElectionsTerminees().size();
 
-            // Candidats
             int totalCandidats = candidatDAO.getTotalCandidats();
 
-            // Injection des données
             stats.put("totalUsers", totalUsers);
             stats.put("totalEtudiants", totalEtudiants);
             stats.put("totalEnseignants", totalEnseignants);
@@ -87,36 +194,32 @@ public class StatistiqueController {
             stats.put("totalCandidats", totalCandidats);
 
         } catch (SQLException e) {
-            System.err.println("❌ Erreur lors du chargement des statistiques du tableau de bord : " + e.getMessage());
+            System.err.println("❌ Erreur lors du chargement des statistiques globales: " + e.getMessage());
             e.printStackTrace();
         }
 
         return stats;
     }
 
-    // =========================================================================
-    // 2. RÉSULTATS ET PARTICIPATION PAR ÉLECTION
-    // =========================================================================
+    // ==========================================
+    // RÉSULTATS PAR ÉLECTION
+    // ==========================================
 
     /**
-     * Récupère les résultats détaillés d'une élection spécifique 
-     * (Nom du candidat -> Nombre de voix).
+     * Récupère les résultats d'une élection
      */
     public Map<String, Integer> getElectionResults(int electionId) {
         return voteDAO.getResults(electionId);
     }
 
     /**
-     * Récupère les résultats détaillés d'une élection avec les informations des candidats
+     * Récupère les résultats d'une élection avec les objets Candidat
      */
     public Map<Candidat, Integer> getElectionResultsWithCandidats(int electionId) {
         Map<Candidat, Integer> resultats = new HashMap<>();
         
         try {
-            // Récupérer tous les candidats de l'élection
             List<Candidat> candidats = candidatDAO.getCandidatesForElection(electionId);
-            
-            // Pour chaque candidat, récupérer son nombre de votes
             for (Candidat candidat : candidats) {
                 int nbVotes = voteDAO.getVotesCountForCandidat(candidat.getId());
                 resultats.put(candidat, nbVotes);
@@ -130,29 +233,24 @@ public class StatistiqueController {
     }
 
     /**
-     * Calcule le pourcentage de participation pour une élection donnée.
+     * Calcule le taux de participation pour une élection
      */
     public double getTauxParticipationByElection(int electionId) {
         try {
-            // Récupérer le nombre d'électeurs ciblés pour cette élection
             int totalInscrits = electionDAO.getElecteursCountForElection(electionId);
             if (totalInscrits == 0) return 0.0;
-
-            // Récupérer le total des votes pour cette élection
             int votesExprimes = voteDAO.getVotesCountForElection(electionId);
-
             double taux = ((double) votesExprimes / totalInscrits) * 100.0;
             return Math.round(taux * 100.0) / 100.0;
-
         } catch (SQLException e) {
-            System.err.println("❌ Erreur lors du calcul du taux de participation pour l'élection ID " + electionId);
+            System.err.println("❌ Erreur lors du calcul du taux de participation");
             e.printStackTrace();
         }
         return 0.0;
     }
 
     /**
-     * Récupère le nombre de votes pour chaque candidat d'une élection
+     * Récupère les votes par candidat pour une élection
      */
     public Map<String, Integer> getVotesParCandidat(int electionId) {
         Map<String, Integer> votes = new HashMap<>();
@@ -172,12 +270,12 @@ public class StatistiqueController {
         return votes;
     }
 
-    // =========================================================================
-    // 3. DÉCOMPTE PAR CATÉGORIE ACADÉMIQUE
-    // =========================================================================
+    // ==========================================
+    // RÉPARTITION ACADÉMIQUE
+    // ==========================================
 
     /**
-     * Retourne la répartition des étudiants par niveau (L1, L2, L3, M1, M2...).
+     * Récupère la répartition des étudiants par niveau
      */
     public Map<String, Integer> getRepartitionParNiveau() {
         Map<String, Integer> repartition = new HashMap<>();
@@ -193,7 +291,7 @@ public class StatistiqueController {
     }
 
     /**
-     * Retourne la répartition des étudiants par filière.
+     * Récupère la répartition des étudiants par filière
      */
     public Map<String, Integer> getRepartitionParFiliere() {
         Map<String, Integer> repartition = new HashMap<>();
@@ -209,7 +307,7 @@ public class StatistiqueController {
     }
 
     /**
-     * Retourne la répartition des étudiants par UFR.
+     * Récupère la répartition des étudiants par UFR
      */
     public Map<String, Integer> getRepartitionParUfr() {
         Map<String, Integer> repartition = new HashMap<>();
@@ -225,7 +323,7 @@ public class StatistiqueController {
     }
 
     /**
-     * Retourne la répartition des utilisateurs par rôle.
+     * Récupère la répartition des utilisateurs par rôle
      */
     public Map<String, Integer> getRepartitionParRole() {
         Map<String, Integer> repartition = new HashMap<>();
@@ -233,7 +331,7 @@ public class StatistiqueController {
         try {
             int totalEtudiants = userDAO.getTotalEtudiants();
             int totalEnseignants = userDAO.getTotalEnseignants();
-            int totalAdmins = getTotalAdmins();
+            int totalAdmins = adminDAO.getTotalAdmins();
             
             repartition.put("Étudiants", totalEtudiants);
             repartition.put("Enseignants", totalEnseignants);
@@ -247,19 +345,19 @@ public class StatistiqueController {
         return repartition;
     }
 
-    // =========================================================================
-    // 4. STATISTIQUES DE PARTICIPATION
-    // =========================================================================
+    // ==========================================
+    // PARTICIPATION
+    // ==========================================
 
     /**
-     * Vérifie si un utilisateur donné a déjà voté à une élection.
+     * Vérifie si un utilisateur a voté pour une élection
      */
     public boolean userHasVoted(int electionId, int userId) {
         return voteDAO.hasUserVoted(electionId, userId);
     }
 
     /**
-     * Récupère le taux de participation par élection avec les détails.
+     * Récupère les détails de participation pour une élection
      */
     public Map<String, Object> getParticipationDetails(int electionId) {
         Map<String, Object> details = new HashMap<>();
@@ -287,18 +385,18 @@ public class StatistiqueController {
     }
 
     /**
-     * Récupère la liste des utilisateurs qui n'ont pas voté pour une élection.
+     * Récupère la liste des non-votants pour une élection
      */
     public List<User> getNonVotantsForElection(int electionId) {
         return voteDAO.getNonVotantsForElection(electionId);
     }
 
-    // =========================================================================
-    // 5. STATISTIQUES ACADÉMIQUES AVANCÉES
-    // =========================================================================
+    // ==========================================
+    // STATISTIQUES AVANCÉES
+    // ==========================================
 
     /**
-     * Récupère le nombre d'étudiants par niveau et par filière.
+     * Récupère la répartition par niveau et filière
      */
     public Map<String, Map<String, Integer>> getRepartitionParNiveauEtFiliere() {
         Map<String, Map<String, Integer>> repartition = new HashMap<>();
@@ -309,9 +407,7 @@ public class StatistiqueController {
             String filiere = u.getFiliereNom();
             
             if (niveau != null && !niveau.isEmpty() && filiere != null && !filiere.isEmpty()) {
-                // Initialiser le niveau si non existant
                 repartition.putIfAbsent(niveau, new HashMap<>());
-                
                 Map<String, Integer> filieresMap = repartition.get(niveau);
                 filieresMap.put(filiere, filieresMap.getOrDefault(filiere, 0) + 1);
             }
@@ -321,7 +417,7 @@ public class StatistiqueController {
     }
 
     /**
-     * Calcule le taux de participation par UFR pour une élection.
+     * Récupère le taux de participation par UFR pour une élection
      */
     public Map<String, Double> getTauxParticipationParUfr(int electionId) {
         Map<String, Double> tauxParUfr = new HashMap<>();
@@ -347,24 +443,12 @@ public class StatistiqueController {
         return tauxParUfr;
     }
 
-    // =========================================================================
-    // 6. STATISTIQUES D'ADMINISTRATION
-    // =========================================================================
+    // ==========================================
+    // STATISTIQUES D'ADMINISTRATION
+    // ==========================================
 
     /**
-     * Récupère le nombre total d'administrateurs.
-     */
-    private int getTotalAdmins() {
-        try {
-            return adminDAO.getTotalAdmins();
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors du comptage des administrateurs");
-            return 0;
-        }
-    }
-
-    /**
-     * Récupère la répartition des élections par statut.
+     * Récupère la répartition des élections par statut
      */
     public Map<String, Integer> getRepartitionElectionsParStatut() {
         Map<String, Integer> repartition = new HashMap<>();
@@ -386,12 +470,12 @@ public class StatistiqueController {
         return repartition;
     }
 
-    // =========================================================================
-    // 7. MÉTHODES UTILITAIRES
-    // =========================================================================
+    // ==========================================
+    // MÉTHODES UTILITAIRES
+    // ==========================================
 
     /**
-     * Génère un rapport complet des statistiques.
+     * Génère un rapport complet de toutes les statistiques
      */
     public Map<String, Object> getRapportComplet() {
         Map<String, Object> rapport = new HashMap<>();
@@ -408,16 +492,26 @@ public class StatistiqueController {
     }
 
     /**
-     * Formate un pourcentage pour l'affichage.
+     * Formate un pourcentage
      */
     public String formatPercentage(double value) {
         return String.format("%.2f%%", value);
     }
 
     /**
-     * Formate un nombre avec des séparateurs de milliers.
+     * Formate un nombre avec séparateurs de milliers
      */
     public String formatNumber(int number) {
         return String.format("%,d", number);
+    }
+
+    // ==========================================
+    // NETTOYAGE
+    // ==========================================
+
+    public void cleanup() {
+        if (view != null) {
+            view.cleanup();
+        }
     }
 }

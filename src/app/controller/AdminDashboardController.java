@@ -3,11 +3,14 @@ package app.controller;
 import app.dao.UserDAO;
 import app.dao.VoteDAO;
 import app.dao.AdminDAO;
+import app.model.Admin;
 import app.view.AdminDashboardView;
 import app.view.LoginView;            
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -20,22 +23,78 @@ public class AdminDashboardController extends BorderPane {
     private final AdminDAO adminDAO;
     private final UserDAO userDAO;
     
+    // Admin connecté
+    private Admin adminConnecte;
+    
     // ==========================================
-    // CONSTRUCTEUR
+    // CONSTRUCTEURS
     // ==========================================
 
+    /**
+     * Constructeur par défaut (sans admin)
+     */
     public AdminDashboardController() {
+        this(null);
+    }
+
+    /**
+     * Constructeur avec admin connecté
+     */
+    public AdminDashboardController(Admin admin) {
         this.view = new AdminDashboardView();
         this.userDAO = new UserDAO();
         this.voteDAO = new VoteDAO();
-        this.adminDAO = new AdminDAO();  
+        this.adminDAO = new AdminDAO();
+        this.adminConnecte = admin;
+        
         this.setCenter(this.view);
 
+        // Configuration du profil admin
+        configurerProfilAdmin();
+        
         // Liaison des actions sur les boutons de la vue
         configurerEvenements();
         
         // Chargement des statistiques au démarrage
         chargerStatistiques();
+    }
+
+    // ==========================================
+    // CONFIGURATION DU PROFIL ADMIN
+    // ==========================================
+
+    private void configurerProfilAdmin() {
+        if (adminConnecte != null) {
+            // Admin passé dans le constructeur
+            view.setAdminInfo(adminConnecte);
+            System.out.println("✅ Admin connecté: " + adminConnecte.getPrenom() + " " + adminConnecte.getNom());
+        } else {
+            // Essayer de récupérer depuis une session (si implémentée)
+            Admin admin = getAdminFromSession();
+            if (admin != null) {
+                view.setAdminInfo(admin);
+                adminConnecte = admin;
+                System.out.println("✅ Admin récupéré depuis la session: " + admin.getPrenom() + " " + admin.getNom());
+            } else {
+                // Admin par défaut
+                view.setAdminInfo("Admin", "Système", "admin@uam.edu.sn");
+                System.out.println("⚠️ Aucun admin connecté, affichage par défaut");
+            }
+        }
+    }
+
+    /**
+     * Récupère l'administrateur depuis la session active
+     * À implémenter selon votre système de session
+     */
+    private Admin getAdminFromSession() {
+        // Exemple: si vous avez une classe SessionManager
+        // return SessionManager.getCurrentAdmin();
+        
+        // Si vous avez stocké l'admin dans une variable statique
+        // return AdminSession.getCurrentAdmin();
+        
+        return null;
     }
 
     // ==========================================
@@ -54,7 +113,7 @@ public class AdminDashboardController extends BorderPane {
         this.view.getBtnStatistiques().setOnAction(e -> ouvrirStatistiques());
         this.view.getBtnRetourConnexion().setOnAction(e -> retourConnexion());
         
-        // Bouton de rafraîchissement (si présent dans la vue)
+        // Bouton de rafraîchissement
         if (this.view.getBtnRafraichir() != null) {
             this.view.getBtnRafraichir().setOnAction(e -> chargerStatistiques());
         }
@@ -99,15 +158,8 @@ public class AdminDashboardController extends BorderPane {
         }
     }
 
-    /**
-     * Rafraîchit les statistiques (appelable depuis l'extérieur)
-     */
-    public void rafraichirStatistiques() {
-        chargerStatistiques();
-    }
-
     // ==========================================
-    // NAVIGATION - GESTION DES UTILISATEURS
+    // MÉTHODES DE NAVIGATION (GESTION)
     // ==========================================
 
     private void ouvrirGestionElecteurs() {
@@ -141,7 +193,7 @@ public class AdminDashboardController extends BorderPane {
     private void ouvrirGestionAdministrateurs() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
-            AdminManagementController adminManagementController = new AdminManagementController(stage);
+            AdminManagementController adminManagementController = new AdminManagementController();
             Scene scene = new Scene(adminManagementController, 1400, 700);
             stage.setTitle("UAM e-Vote - Gestion des administrateurs");
             stage.setScene(scene);
@@ -151,10 +203,6 @@ public class AdminDashboardController extends BorderPane {
             afficherMessage("Erreur", "Impossible d'ouvrir la gestion des administrateurs : " + e.getMessage());
         }
     }
-
-    // ==========================================
-    // NAVIGATION - GESTION DES CANDIDATS
-    // ==========================================
 
     private void ouvrirGestionCandidats() { 
         try {
@@ -170,10 +218,6 @@ public class AdminDashboardController extends BorderPane {
         }
     }
 
-    // ==========================================
-    // NAVIGATION - GESTION DES ÉLECTIONS
-    // ==========================================
-
     private void ouvrirGestionElections() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
@@ -187,10 +231,6 @@ public class AdminDashboardController extends BorderPane {
             afficherMessage("Erreur", "Impossible d'ouvrir la gestion des élections : " + e.getMessage());
         }
     }
-
-    // ==========================================
-    // NAVIGATION - GESTION ACADÉMIQUE
-    // ==========================================
 
     private void ouvrirGestionUfrs() {
         try {
@@ -234,29 +274,14 @@ public class AdminDashboardController extends BorderPane {
         }
     }
 
-    // ==========================================
-    // NAVIGATION - STATISTIQUES
-    // ==========================================
-
     private void ouvrirStatistiques() {
         try {
             Stage stage = (Stage) this.getScene().getWindow();
-            // Créer un contrôleur de statistiques (à implémenter)
-            // Pour l'instant, on utilise le contrôleur actuel
-            // Mais vous devriez avoir un StatistiqueController dédié
-            StatistiqueController statistiqueController = new StatistiqueController();
-            // Si vous avez une vue de statistiques, utilisez-la ici
-            // Sinon, on reste sur le dashboard
-            afficherMessage("Information", "Module de statistiques en cours de développement.");
-            
-            // Exemple de code si vous avez une vue de statistiques :
-            // StatisticsView statisticsView = new StatisticsView();
-            // StatistiqueController statsCtrl = new StatistiqueController(statisticsView);
-            // Scene scene = new Scene(statisticsView, 1400, 700);
-            // stage.setTitle("UAM e-Vote - Statistiques");
-            // stage.setScene(scene);
-            // stage.centerOnScreen();
-            
+            StatisticsController statisticsController = new StatisticsController();
+            Scene scene = new Scene(statisticsController, 1400, 700);
+            stage.setTitle("UAM e-Vote - Statistiques");
+            stage.setScene(scene);
+            stage.centerOnScreen();
         } catch (Exception e) {
             e.printStackTrace();
             afficherMessage("Erreur", "Impossible d'ouvrir l'interface des statistiques : " + e.getMessage());
@@ -264,22 +289,46 @@ public class AdminDashboardController extends BorderPane {
     }
 
     // ==========================================
-    // NAVIGATION - RETOUR À LA CONNEXION
+    // RETOUR À LA CONNEXION
     // ==========================================
 
     private void retourConnexion() {
-        try {
-            Stage stage = (Stage) this.getScene().getWindow();
-            LoginView loginView = new LoginView();
-            LoginController loginController = new LoginController(loginView);
-            Scene scene = new Scene(loginController, 1400, 700);
-            stage.setTitle("UAM e-Vote - Connexion");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace();
-            afficherMessage("Erreur", "Impossible de revenir à la page de connexion : " + e.getMessage());
+        // Confirmation avant déconnexion
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Déconnexion");
+        confirm.setHeaderText("Voulez-vous vraiment vous déconnecter ?");
+        confirm.setContentText("Vous serez redirigé vers la page de connexion.");
+        
+        // Personnalisation des boutons
+        DialogPane dialogPane = confirm.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: white;");
+        
+        Button yesButton = (Button) dialogPane.lookupButton(ButtonType.YES);
+        Button noButton = (Button) dialogPane.lookupButton(ButtonType.NO);
+        
+        if (yesButton != null) {
+            yesButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold;");
         }
+        if (noButton != null) {
+            noButton.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold;");
+        }
+        
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.YES) {
+                try {
+                    Stage stage = (Stage) this.getScene().getWindow();
+                    LoginView loginView = new LoginView();
+                    LoginController loginController = new LoginController(loginView);
+                    Scene scene = new Scene(loginController, 1400, 700);
+                    stage.setTitle("UAM e-Vote - Connexion");
+                    stage.setScene(scene);
+                    stage.centerOnScreen();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    afficherMessage("Erreur", "Impossible de revenir à la page de connexion : " + e.getMessage());
+                }
+            }
+        });
     }
 
     // ==========================================
@@ -292,11 +341,10 @@ public class AdminDashboardController extends BorderPane {
         alert.setHeaderText(null);
         alert.setContentText(message);
         
-        // Personnalisation du style
-        javafx.scene.control.DialogPane dialogPane = alert.getDialogPane();
+        DialogPane dialogPane = alert.getDialogPane();
         dialogPane.setStyle("-fx-background-color: white;");
         dialogPane.getButtonTypes().forEach(button -> {
-            javafx.scene.control.Button btn = (javafx.scene.control.Button) dialogPane.lookupButton(button);
+            Button btn = (Button) dialogPane.lookupButton(button);
             btn.setStyle("-fx-background-color: #005088; -fx-text-fill: white; -fx-font-weight: bold;");
         });
         
@@ -304,7 +352,7 @@ public class AdminDashboardController extends BorderPane {
     }
 
     // ==========================================
-    // GETTERS (optionnels)
+    // GETTERS
     // ==========================================
 
     public AdminDashboardView getView() {
@@ -321,5 +369,16 @@ public class AdminDashboardController extends BorderPane {
 
     public UserDAO getUserDAO() {
         return userDAO;
+    }
+
+    public Admin getAdminConnecte() {
+        return adminConnecte;
+    }
+
+    public void setAdminConnecte(Admin adminConnecte) {
+        this.adminConnecte = adminConnecte;
+        if (adminConnecte != null) {
+            view.setAdminInfo(adminConnecte);
+        }
     }
 }

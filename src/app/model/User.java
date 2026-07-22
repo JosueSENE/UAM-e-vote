@@ -156,6 +156,16 @@ public class User implements Connectable {
     public void setUfrNom(String ufrNom) { 
         this.ufrNom = ufrNom; 
     }
+    private String filieresList; // Liste des filieres separees par des virgules
+
+    // Getters et Setters
+    public String getFilieresList() { 
+        return filieresList; 
+    }
+
+    public void setFilieresList(String filieresList) { 
+        this.filieresList = filieresList; 
+    }
 
     // ==========================================
     // MÉTHODES DE CONVENANCE (UTILITAIRES)

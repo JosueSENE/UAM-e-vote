@@ -36,7 +36,7 @@ public class MainApp extends Application {
             e.printStackTrace();
         }
     }
-                                                                                                                                         //ndiaye.pape@uam.edu.sn      AdminSecure26 
+                                                                                                 //ndiaye.pape@uam.edu.sn      AdminSecure26 
     public static void main(String[] args) {
         System.out.println("============= Démarrage de UAM e-Vote =============\n");
         System.out.println("Vérification de la connexion à la base de données...");
