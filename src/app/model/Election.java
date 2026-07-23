@@ -64,7 +64,7 @@ public class Election {
         return "Toutes les cibles";
     }
 
-    // Getters & Setters
+    // Getters & Setters Standard
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -97,6 +97,22 @@ public class Election {
 
     public String getCible_profession() { return cible_profession; }
     public void setCible_profession(String cible_profession) { this.cible_profession = cible_profession; }
+
+    // Alias CamelCase
+    public Integer getCibleUfrId() { return cible_ufr_id; }
+    public void setCibleUfrId(Integer cibleUfrId) { this.cible_ufr_id = cibleUfrId; }
+
+    public Integer getCibleDepartementId() { return cible_departement_id; }
+    public void setCibleDepartementId(Integer cibleDepartementId) { this.cible_departement_id = cibleDepartementId; }
+
+    public Integer getCibleFiliereId() { return cible_filiere_id; }
+    public void setCibleFiliereId(Integer cibleFiliereId) { this.cible_filiere_id = cibleFiliereId; }
+
+    public String getCibleNiveau() { return cible_niveau; }
+    public void setCibleNiveau(String cibleNiveau) { this.cible_niveau = cibleNiveau; }
+
+    public String getCibleProfession() { return cible_profession; }
+    public void setCibleProfession(String cibleProfession) { this.cible_profession = cibleProfession; }
 
     public Ufr getUfr() { return ufr; }
     public void setUfr(Ufr ufr) { this.ufr = ufr; }

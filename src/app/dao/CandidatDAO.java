@@ -10,53 +10,67 @@ import java.util.List;
 
 public class CandidatDAO {
 
-    // ===================== CRUD ==============================
+    // ==========================================
+    // CRUD
+    // ==========================================
 
-    // AJOUTER UN CANDIDAT (Retourne true si l'ajout a réussi)
-
+    /**
+     * Ajoute un candidat
+     * Retourne true si l'ajout a réussi
+     */
     public boolean addCandidat(Candidat c) {
-        String sql = "INSERT INTO candidats (election_id, user_id, programme, photo) VALUES (?,?,?,?)";
+        String sql = "INSERT INTO candidats (election_id, user_id, programme, photo) VALUES (?, ?, ?, ?)";
+        
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
             ps.setInt(1, c.getElectionId());
             ps.setInt(2, c.getUserId());
             ps.setString(3, c.getProgramme());
             ps.setString(4, c.getPhoto());
 
-            if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Candidat ajouté avec succès.");
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        c.setId(generatedKeys.getInt(1));
+                    }
+                }
+                System.out.println("✅ Succès : Candidat ajouté avec succès.");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion du candidat.");
+            System.err.println("❌ Erreur lors de l'insertion du candidat.");
             e.printStackTrace();
         }
         return false;
     }
 
-    // LISTE DES CANDIDATS D'UNE ÉLECTION DONNÉE
-
+    /**
+     * Récupère la liste des candidats pour une élection donnée
+     */
     public List<Candidat> getCandidatesForElection(int electionId) {
         List<Candidat> liste = new ArrayList<>();
-        // Correction des espaces, de l'orthographe de 'candidats' et ajout des champs utilisateurs nécessaires
-        String sql = "SELECT c.*, u.nom, u.prenom, u.profession, u.email, u.code_permanent " +
-                    "FROM candidats c " +
-                    "JOIN users u ON c.user_id = u.id " +
-                    "WHERE c.election_id = ?";
+        String sql = "SELECT c.*, u.code_permanent, u.nom, u.prenom, u.email, u.login, u.role, " +
+                     "u.filiere_id, u.niveau, u.ufr_id, " +
+                     "f.nom as filiere_nom, d.nom as departement_nom, uf.nom as ufr_nom " +
+                     "FROM candidats c " +
+                     "JOIN users u ON c.user_id = u.id " +
+                     "LEFT JOIN filieres f ON u.filiere_id = f.id " +
+                     "LEFT JOIN departements d ON f.departement_id = d.id " +
+                     "LEFT JOIN ufr uf ON u.ufr_id = uf.id " +
+                     "WHERE c.election_id = ? " +
+                     "ORDER BY u.nom, u.prenom";
                     
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    User u = new User();
-                    u.setId(rs.getInt("user_id")); // Récupère l'ID de l'utilisateur lié
-                    u.setCode_permanent(rs.getInt("code_permanent"));
-                    u.setNom(rs.getString("nom"));
-                    u.setPrenom(rs.getString("prenom"));
-                    u.setEmail(rs.getString("email"));
-                    u.setProfession(rs.getString("profession")); // Correction du setter ici (fini le doublon setPrenom)
-
+                    // Construction de l'utilisateur
+                    User u = mapResultSetToUser(rs);
+                    
+                    // Construction du candidat
                     Candidat c = new Candidat();
                     c.setId(rs.getInt("id"));
                     c.setElectionId(rs.getInt("election_id"));
@@ -69,18 +83,144 @@ public class CandidatDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération de la liste des candidats pour l'élection n° " + electionId);
+            System.err.println("❌ Erreur lors de la récupération de la liste des candidats pour l'élection n° " + electionId);
             e.printStackTrace();
         }
         return liste;
     }
 
-    // MODIFIER UN CANDIDAT (Retourne true si la modification a réussi)
-    
+    /**
+     * Récupère un candidat par son ID
+     */
+    public Candidat getCandidatById(int candidatId) {
+        String sql = "SELECT c.*, u.code_permanent, u.nom, u.prenom, u.email, u.login, u.role, " +
+                     "u.filiere_id, u.niveau, u.ufr_id, " +
+                     "f.nom as filiere_nom, d.nom as departement_nom, uf.nom as ufr_nom " +
+                     "FROM candidats c " +
+                     "JOIN users u ON c.user_id = u.id " +
+                     "LEFT JOIN filieres f ON u.filiere_id = f.id " +
+                     "LEFT JOIN departements d ON f.departement_id = d.id " +
+                     "LEFT JOIN ufr uf ON u.ufr_id = uf.id " +
+                     "WHERE c.id = ?";
+                    
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, candidatId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User u = mapResultSetToUser(rs);
+                    
+                    Candidat c = new Candidat();
+                    c.setId(rs.getInt("id"));
+                    c.setElectionId(rs.getInt("election_id"));
+                    c.setUserId(rs.getInt("user_id"));
+                    c.setProgramme(rs.getString("programme"));
+                    c.setPhoto(rs.getString("photo"));
+                    c.setUser(u);
+                    
+                    return c;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la récupération du candidat n° " + candidatId);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Vérifie si un utilisateur est déjà candidat pour une élection
+     */
+    public boolean isUserCandidate(int electionId, int userId) {
+        String sql = "SELECT COUNT(*) FROM candidats WHERE election_id = ? AND user_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, electionId);
+            ps.setInt(2, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la vérification du candidat");
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Récupère tous les candidats d'un utilisateur
+     */
+    public List<Candidat> getCandidatsByUser(int userId) {
+        List<Candidat> liste = new ArrayList<>();
+        String sql = "SELECT c.*, u.code_permanent, u.nom, u.prenom, u.email, u.login, u.role, " +
+                     "u.filiere_id, u.niveau, u.ufr_id, " +
+                     "f.nom as filiere_nom, d.nom as departement_nom, uf.nom as ufr_nom " +
+                     "FROM candidats c " +
+                     "JOIN users u ON c.user_id = u.id " +
+                     "LEFT JOIN filieres f ON u.filiere_id = f.id " +
+                     "LEFT JOIN departements d ON f.departement_id = d.id " +
+                     "LEFT JOIN ufr uf ON u.ufr_id = uf.id " +
+                     "WHERE c.user_id = ? " +
+                     "ORDER BY c.election_id DESC";
+                    
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = mapResultSetToUser(rs);
+                    
+                    Candidat c = new Candidat();
+                    c.setId(rs.getInt("id"));
+                    c.setElectionId(rs.getInt("election_id"));
+                    c.setUserId(rs.getInt("user_id"));
+                    c.setProgramme(rs.getString("programme"));
+                    c.setPhoto(rs.getString("photo"));
+                    c.setUser(u);
+                    
+                    liste.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la récupération des candidats de l'utilisateur");
+            e.printStackTrace();
+        }
+        return liste;
+    }
+
+    /**
+     * Récupère le nombre de candidats pour une élection
+     */
+    public int getCandidatesCount(int electionId) {
+        String sql = "SELECT COUNT(*) FROM candidats WHERE election_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, electionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors du comptage des candidats");
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Modifie un candidat
+     * Retourne true si la modification a réussi
+     */
     public boolean updateCandidat(Candidat c) {
         String sql = "UPDATE candidats SET election_id = ?, user_id = ?, programme = ?, photo = ? WHERE id = ?";
+        
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, c.getElectionId());
             ps.setInt(2, c.getUserId());
             ps.setString(3, c.getProgramme());
@@ -88,32 +228,165 @@ public class CandidatDAO {
             ps.setInt(5, c.getId());
             
             if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Candidat n° " + c.getId() + " modifié dans la base de données.");
+                System.out.println("✅ Succès : Candidat n° " + c.getId() + " modifié dans la base de données.");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour du candidat n° " + c.getId());
+            System.err.println("❌ Erreur lors de la mise à jour du candidat n° " + c.getId());
             e.printStackTrace();
         }
         return false;
     }
     
-    // SUPPRIMER UN CANDIDAT (Retourne true si la suppression a réussi)
-
-    public boolean deleteCandidate(int id) {
+    /**
+     * Supprime un candidat
+     * Retourne true si la suppression a réussi
+     */
+    public boolean deleteCandidat(int id) {
         String sql = "DELETE FROM candidats WHERE id = ?";
+        
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             
             if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Candidat n° " + id + " supprimé de la base de données.");
+                System.out.println("✅ Succès : Candidat n° " + id + " supprimé de la base de données.");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du candidat n° " + id);
+            System.err.println("❌ Erreur lors de la suppression du candidat n° " + id);
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * Supprime tous les candidats d'une élection
+     */
+    public boolean deleteCandidatsByElection(int electionId) {
+        String sql = "DELETE FROM candidats WHERE election_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, electionId);
+            
+            int deleted = ps.executeUpdate();
+            System.out.println("✅ " + deleted + " candidat(s) supprimé(s) pour l'élection n° " + electionId);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la suppression des candidats de l'élection n° " + electionId);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ==========================================
+    // MÉTHODES DE RECHERCHE
+    // ==========================================
+
+    /**
+     * Recherche des candidats par nom ou prénom
+     */
+    public List<Candidat> searchCandidats(String searchTerm) {
+        List<Candidat> liste = new ArrayList<>();
+        String sql = "SELECT c.*, u.code_permanent, u.nom, u.prenom, u.email, u.login, u.role, " +
+                     "u.filiere_id, u.niveau, u.ufr_id, " +
+                     "f.nom as filiere_nom, d.nom as departement_nom, uf.nom as ufr_nom " +
+                     "FROM candidats c " +
+                     "JOIN users u ON c.user_id = u.id " +
+                     "LEFT JOIN filieres f ON u.filiere_id = f.id " +
+                     "LEFT JOIN departements d ON f.departement_id = d.id " +
+                     "LEFT JOIN ufr uf ON u.ufr_id = uf.id " +
+                     "WHERE u.nom LIKE ? OR u.prenom LIKE ? " +
+                     "ORDER BY u.nom, u.prenom";
+                    
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String searchPattern = "%" + searchTerm + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = mapResultSetToUser(rs);
+                    
+                    Candidat c = new Candidat();
+                    c.setId(rs.getInt("id"));
+                    c.setElectionId(rs.getInt("election_id"));
+                    c.setUserId(rs.getInt("user_id"));
+                    c.setProgramme(rs.getString("programme"));
+                    c.setPhoto(rs.getString("photo"));
+                    c.setUser(u);
+                    
+                    liste.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la recherche des candidats");
+            e.printStackTrace();
+        }
+        return liste;
+    }
+
+    // ==========================================
+    // STATISTIQUES
+    // ==========================================
+
+    /**
+     * Récupère le nombre total de candidats
+     */
+    public int getTotalCandidats() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM candidats";
+        
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Récupère le nombre de candidats par élection
+     */
+    public int getCandidatsCountByElection(int electionId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM candidats WHERE election_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, electionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    // ==========================================
+    // MAPPING
+    // ==========================================
+
+    /**
+     * Convertit un ResultSet en objet User
+     */
+    private User mapResultSetToUser(ResultSet rs) throws SQLException {
+        User u = new User();
+        u.setId(rs.getInt("user_id"));
+        u.setCode_permanent(rs.getInt("code_permanent"));
+        u.setNom(rs.getString("nom"));
+        u.setPrenom(rs.getString("prenom"));
+        u.setEmail(rs.getString("email"));
+        u.setProfession(rs.getString("role"));
+        u.setNiveau(rs.getString("niveau"));
+        
+        // Gestion des NULL pour les clés étrangères
+        int filiereId = rs.getInt("filiere_id");
+        if (!rs.wasNull()) {
+            u.setFiliere_id(filiereId);
+        }
+        return u;
     }
 }
