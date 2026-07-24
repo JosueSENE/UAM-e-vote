@@ -1,8 +1,8 @@
 package app.model;
 
-public class Admin  implements Connectable {
+public class Admin implements Connectable {
     private int id;
-    private int code_permanent;
+    private int codePermanent;
     private String nom;
     private String prenom;
     private String email;
@@ -10,24 +10,22 @@ public class Admin  implements Connectable {
 
     public Admin(){}
 
-    public Admin(int id, int code_permanent, String nom, String prenom, String email, String password) {
+    public Admin(int id, int codePermanent, String nom, String prenom, String email, String password) {
         this.id = id;
-        this.code_permanent = code_permanent;
+        this.codePermanent = codePermanent;
         this.nom = nom;
         this.prenom = prenom;
         this.email = email;
         this.password = password;
     }
 
-    public boolean aUnMotDePasse() {
-        return this.password != null && !this.password.trim().isEmpty();
-    }
+    public boolean hasPassword() {return password != null && !password.trim().isEmpty();}
 
     public int getId() {return id;}
     public void setId(int id) {this.id = id;}
 
-    public int getCode_permanent() {return code_permanent;}
-    public void setCode_permanent(int code_permanent) {this.code_permanent = code_permanent;}
+    public int getCodePermanent() {return codePermanent;}
+    public void setCodePermanent(int code_permanent) {this.codePermanent = code_permanent;}
 
     public String getNom() {return nom;}
     public void setNom(String nom) {this.nom = nom;}
@@ -40,5 +38,19 @@ public class Admin  implements Connectable {
 
     public String getPassword() {return password;}
     public void setPassword(String password) {this.password = password;} 
+
+    public String getFullName() {return prenom + " " + nom;}
+
+    public String getFullNameFormatted() {return nom + " " + prenom;}
+
+    @Override
+    public String toString() {
+        return "Admin{" +
+                "id=" + id +
+                ", codePermanent=" + codePermanent +
+                ", nom='" + nom + '\'' +
+                ", prenom='" + prenom + '\'' +
+                ", email='" + email + '}';
+    }
     
 }

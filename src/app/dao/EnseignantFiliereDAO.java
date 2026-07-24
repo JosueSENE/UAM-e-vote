@@ -9,9 +9,9 @@ import app.utils.DBConnection;
 
 public class EnseignantFiliereDAO {
 
-    // ===================== CRUD ==============================
-
-    // AJOUTER UN ENSEIGNANT À UNE FILIÈRE (Retourne true si l'ajout a réussi)
+    // ===================================================
+    // AJOUTER UN ENSEIGNANT À UNE FILIÈRE
+    // ===================================================
 
     public boolean addEnseignantFilieres(Enseignant_filieres ef) {
         String sql = "INSERT INTO enseignant_filieres (enseignant_id, filiere_id) VALUES (?, ?)";
@@ -21,17 +21,19 @@ public class EnseignantFiliereDAO {
             ps.setInt(2, ef.getFiliere_id());
             
             if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Enseignant " + ef.getEnseignant_id() + " ajouté dans la filière " + ef.getFiliere_id());
+                System.out.println("✅ Succès : Enseignant " + ef.getEnseignant_id() + " ajouté dans la filière " + ef.getFiliere_id());
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion de l'enseignant " + ef.getEnseignant_id());
+            System.err.println("❌ Erreur lors de l'insertion de l'enseignant " + ef.getEnseignant_id());
             e.printStackTrace();
         }
         return false;
     }
 
+    // ===================================================
     // RECHERCHER UN ENSEIGNANT DANS UNE FILIÈRE
+    // ===================================================
 
     public Enseignant_filieres searchEnseignantFilieres(int enseignant_id, int filiere_id) {
         String sql = "SELECT * FROM enseignant_filieres WHERE enseignant_id = ? AND filiere_id = ?";
@@ -48,13 +50,15 @@ public class EnseignantFiliereDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la recherche de l'enseignant " + enseignant_id + " dans la filière n° " + filiere_id);
+            System.err.println("❌ Erreur lors de la recherche de l'enseignant " + enseignant_id + " dans la filière n° " + filiere_id);
             e.printStackTrace();
         }
         return null;
     }
 
+    // ================================================================
     // RÉCUPÉRER TOUTES LES LIGNES DE LA TABLE enseignant_filieres
+    // ================================================================
 
     public List<Enseignant_filieres> getAllEnseignantFilieres() {
         List<Enseignant_filieres> liste = new ArrayList<>();
@@ -69,13 +73,15 @@ public class EnseignantFiliereDAO {
                 liste.add(ef);
             }       
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des enseignants : ");
+            System.err.println("❌ Erreur lors de la récupération des enseignants : ");
             e.printStackTrace();
         }
         return liste;
     }
 
-    // MODIFIER LA FILIÈRE D'UN ENSEIGNANT (Retourne true si la modification a réussi)
+    // ===================================================
+    // MODIFIER LA FILIÈRE D'UN ENSEIGNANT
+    // ===================================================
 
     public boolean updateEnseignantFiliere(Enseignant_filieres ef, int ancienneFiliereId) {
         String sql = "UPDATE enseignant_filieres SET filiere_id = ? WHERE enseignant_id = ? AND filiere_id = ?";
@@ -83,20 +89,21 @@ public class EnseignantFiliereDAO {
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, ef.getFiliere_id());
             ps.setInt(2, ef.getEnseignant_id());
-            ps.setInt(3, ancienneFiliereId);
-            
+            ps.setInt(3, ancienneFiliereId);         
             if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Lien mis à jour pour l'enseignant " + ef.getEnseignant_id());
+                System.out.println("✅ Succès : Lien mis à jour pour l'enseignant " + ef.getEnseignant_id());
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour de l'enseignant " + ef.getEnseignant_id());
+            System.err.println("❌ Erreur lors de la mise à jour de l'enseignant " + ef.getEnseignant_id());
             e.printStackTrace();
         }
         return false;
     }
 
-    // SUPPRIMER UN ENSEIGNANT D'UNE FILIÈRE (Retourne true si la suppression a réussi)
+    // ===================================================
+    // SUPPRIMER UN ENSEIGNANT D'UNE FILIÈRE
+    // ===================================================
 
     public boolean deleteEnseignantFiliere(int enseignant_id, int filiere_id) {
         String sql = "DELETE FROM enseignant_filieres WHERE enseignant_id = ? AND filiere_id = ?";
@@ -104,13 +111,12 @@ public class EnseignantFiliereDAO {
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, enseignant_id);
             ps.setInt(2, filiere_id);
-            
             if (ps.executeUpdate() > 0) {
-                System.out.println("Succès : Enseignant " + enseignant_id + " retiré de la filière " + filiere_id);
+                System.out.println("✅ Succès : Enseignant " + enseignant_id + " retiré de la filière " + filiere_id);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression du lien pour l'enseignant " + enseignant_id);
+            System.err.println("❌ Erreur lors de la suppression du lien pour l'enseignant " + enseignant_id);
             e.printStackTrace();
         }
         return false;

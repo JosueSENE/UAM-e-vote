@@ -20,6 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Base de données : `uam_evote`
 --
+DROP DATABASE IF EXISTS `uam_evote`;
 CREATE DATABASE IF NOT EXISTS `uam_evote` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `uam_evote`;
 
@@ -31,7 +32,7 @@ USE `uam_evote`;
 
 CREATE TABLE `admin` (
   `id` int(11) NOT NULL,
-  `code_permanent` int(11) NOT NULL,
+  `code_permanent` int(6) NOT NULL,
   `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
@@ -94,7 +95,7 @@ CREATE TABLE `elections` (
   `cible_ufr_id` int(11) DEFAULT NULL,
   `cible_departement_id` int(11) DEFAULT NULL,
   `cible_filiere_id` int(11) DEFAULT NULL,
-  `cibe_niveau` enum('L1','L2','L3','M1','M2') DEFAULT NULL,
+  `cible_niveau` enum('L1','L2','L3','M1','M2') DEFAULT NULL,
   `cible_profession` enum('ETUDIANTS','ENSEIGNANTS') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -158,7 +159,7 @@ INSERT INTO `ufr` (`id`, `nom`) VALUES
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `code_permanent` int(11) NOT NULL,
+  `code_permanent` int(6) NOT NULL,
   `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,

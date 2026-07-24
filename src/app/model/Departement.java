@@ -2,15 +2,15 @@ package app.model;
 
 public class Departement {
     private int id;
-    private int ufr_id;
+    private int ufrId;
     private String nom;
     private  Ufr ufr;;
 
     public Departement(){}
 
-    public Departement(int id, int ufr_id, String nom, Ufr ufr) {
+    public Departement(int id, int ufrId, String nom, Ufr ufr) {
         this.id = id;
-        this.ufr_id = ufr_id;
+        this.ufrId = ufrId;
         this.nom = nom;
         this.ufr = ufr;
     }
@@ -18,8 +18,8 @@ public class Departement {
     public int getId() {return id;}
     public void setId(int id) {this.id = id;}
 
-    public int getUfr_id() {return ufr_id;}
-    public void setUfr_id(int ufr_id) {this.ufr_id = ufr_id;}
+    public int getUfr_id() {return ufrId;}
+    public void setUfr_id(int ufr_id) {this.ufrId = ufr_id;}
 
     public String getNom() {return nom;}
     public void setNom(String nom) {this.nom = nom;}

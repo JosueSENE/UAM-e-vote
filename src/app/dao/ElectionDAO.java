@@ -7,41 +7,25 @@ import app.model.Filiere;
 import app.utils.DBConnection;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ElectionDAO {
 
-    // ===================== LECTURE (READ) ==============================
+    // =========================================================================
+    // 1. LECTURE & FILTRES (READ)
+    // =========================================================================
 
     /**
-     * Récupère toutes les élections de la base de données
+     * Récupère toutes les élections de la base de données.
      */
     public List<Election> getAllElections() {
-        List<Election> list = new ArrayList<>();
-        String sql = "SELECT e.*, u.nom AS ufr_nom, d.nom AS departement_nom, f.nom AS filiere_nom " +
-                    "FROM elections e " +
-                    "LEFT JOIN ufr u ON e.cible_ufr_id = u.id " +
-                    "LEFT JOIN departements d ON e.cible_departement_id = d.id " +
-                    "LEFT JOIN filieres f ON e.cible_filiere_id = f.id " +
-                    "ORDER BY e.id DESC";
-
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                list.add(mapResultSetToElection(rs));
-            }
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la récupération des élections :");
-            e.printStackTrace();
-        }
-        return list;
+        return getElectionsByCondition("ORDER BY e.id DESC");
     }
 
     /**
-     * Récupère une élection spécifique par son ID
+     * Récupère une élection spécifique grâce à son ID unique.
      */
     public Election getElectionById(int id) {
         String sql = "SELECT e.*, u.nom AS ufr_nom, d.nom AS departement_nom, f.nom AS filiere_nom " +
@@ -65,129 +49,9 @@ public class ElectionDAO {
         return null;
     }
 
-    // ===================== CRUD ==============================
-
     /**
-     * Ajouter une élection
+     * Récupère toutes les élections correspondant à un type donné (ex: "Délégué", "BDE", etc.).
      */
-    public boolean addElection(Election el) {
-        String sql = "INSERT INTO elections " +
-                    "(titre, type_election, date_debut, date_fin, statut, cible_ufr_id, cible_departement_id, cible_filiere_id, cible_niveau, cible_profession) " + 
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, el.getTitre());
-            ps.setString(2, el.getTypeElection());
-            ps.setTimestamp(3, Timestamp.valueOf(el.getDateDebut()));
-            ps.setTimestamp(4, Timestamp.valueOf(el.getDateFin()));
-            
-            String statutInitial = el.calculerStatut();
-            ps.setString(5, statutInitial);
-
-            setNullableInt(ps, 6, el.getCible_ufr_id());
-            setNullableInt(ps, 7, el.getCible_departement_id());
-            setNullableInt(ps, 8, el.getCible_filiere_id());
-            
-            setNullableString(ps, 9, el.getCible_niveau());
-            setNullableString(ps, 10, el.getCible_profession());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de l'insertion de l'élection");
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Mise à jour complète d'une élection
-     */
-    public boolean updateElection(Election el) {
-        String sql = "UPDATE elections SET " +
-                    "titre = ?, type_election = ?, date_debut = ?, date_fin = ?, statut = ?, " +
-                    "cible_ufr_id = ?, cible_departement_id = ?, cible_filiere_id = ?, cible_niveau = ?, cible_profession = ? " + 
-                    "WHERE id = ?";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, el.getTitre());
-            ps.setString(2, el.getTypeElection());
-            ps.setTimestamp(3, Timestamp.valueOf(el.getDateDebut()));
-            ps.setTimestamp(4, Timestamp.valueOf(el.getDateFin()));
-            
-            String nouveauStatut = el.calculerStatut();
-            ps.setString(5, nouveauStatut);
-            
-            setNullableInt(ps, 6, el.getCible_ufr_id());
-            setNullableInt(ps, 7, el.getCible_departement_id());
-            setNullableInt(ps, 8, el.getCible_filiere_id());
-            
-            setNullableString(ps, 9, el.getCible_niveau());
-            setNullableString(ps, 10, el.getCible_profession());
-
-            ps.setInt(11, el.getId());
-
-            if (ps.executeUpdate() > 0) {
-                el.setStatut(nouveauStatut);
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la mise à jour de l'élection ID " + el.getId());
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Mise à jour du statut d'une élection
-     */
-    public boolean updateStatus(int electionId, String newStatus) {
-        String sql = "UPDATE elections SET statut = ? WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newStatus);
-            ps.setInt(2, electionId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la mise à jour du statut");
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /**
-     * Supprimer une élection
-     */
-    public boolean deleteElection(int id) {
-        String sql = "DELETE FROM elections WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la suppression de l'élection n° " + id);
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // ===================== FILTRES & RECHERCHES ==============================
-
-    public List<Election> getElectionsEnCours() {
-        return getElectionsByCondition("WHERE e.statut = 'Ouverte' ORDER BY e.date_fin ASC");
-    }
-
-    public List<Election> getElectionsTerminees() {
-        return getElectionsByCondition("WHERE e.statut = 'Fermée' ORDER BY e.date_fin DESC");
-    }
-
-    public List<Election> getElectionsEnPreparation() {
-        return getElectionsByCondition("WHERE e.statut = 'En préparation' ORDER BY e.date_debut ASC");
-    }
-
     public List<Election> getElectionsByType(String typeElection) {
         List<Election> list = new ArrayList<>();
         String sql = "SELECT e.*, u.nom AS ufr_nom, d.nom AS departement_nom, f.nom AS filiere_nom " +
@@ -213,13 +77,38 @@ public class ElectionDAO {
         return list;
     }
 
+    /**
+     * Récupère la liste des élections ouvertes (en cours).
+     */
+    public List<Election> getElectionsEnCours() {
+        return getElectionsByCondition("e.statut = 'Ouverte' ORDER BY e.date_fin ASC");
+    }
+
+    /**
+     * Récupère la liste des élections fermées (terminées).
+     */
+    public List<Election> getElectionsTerminees() {
+        return getElectionsByCondition("e.statut = 'Fermée' ORDER BY e.date_fin DESC");
+    }
+
+    /**
+     * Récupère la liste des élections à venir (en préparation).
+     */
+    public List<Election> getElectionsEnPreparation() {
+        return getElectionsByCondition("e.statut = 'En préparation' ORDER BY e.date_debut ASC");
+    }
+
+    /**
+     * Méthode générique privée pour filtrer les élections selon une clause SQL personnalisée.
+     */
     private List<Election> getElectionsByCondition(String conditionSql) {
         List<Election> list = new ArrayList<>();
         String sql = "SELECT e.*, u.nom AS ufr_nom, d.nom AS departement_nom, f.nom AS filiere_nom " +
                     "FROM elections e " +
                     "LEFT JOIN ufr u ON e.cible_ufr_id = u.id " +
                     "LEFT JOIN departements d ON e.cible_departement_id = d.id " +
-                    "LEFT JOIN filieres f ON e.cible_filiere_id = f.id " + conditionSql;
+                    "LEFT JOIN filieres f ON e.cible_filiere_id = f.id " +
+                    (conditionSql.startsWith("ORDER") || conditionSql.trim().isEmpty() ? " " : " WHERE ") + conditionSql;
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -235,7 +124,8 @@ public class ElectionDAO {
     }
 
     /**
-     * Récupère les élections accessibles à un utilisateur spécifique
+     * Récupère toutes les élections ouvertes auxquelles un utilisateur a le droit de participer
+     * en fonction de son profil (UFR, département, filière, niveau, profession).
      */
     public List<Election> getElectionsForUser(int userId, String profession, Integer filiereId, String niveau, Integer ufrId) {
         List<Election> list = new ArrayList<>();
@@ -277,69 +167,173 @@ public class ElectionDAO {
         return list;
     }
 
-    // ===================== STATISTIQUES ==============================
+    // =========================================================================
+    // 2. ÉCRITURE & PERSISTANCE (CRUD / CUD)
+    // =========================================================================
 
-    public int countElectionsByStatut(String statut) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM elections WHERE statut = ?";
+    /**
+     * Insère une nouvelle élection en base de données.
+     */
+    public boolean addElection(Election el) {
+        String sql = "INSERT INTO elections " +
+                    "(titre, type_election, date_debut, date_fin, statut, cible_ufr_id, cible_departement_id, cible_filiere_id, cible_niveau, cible_profession) " + 
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";            
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, statut);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
-            }
+            ps.setString(1, el.getTitre());
+            ps.setString(2, el.getTypeElection());
+            ps.setTimestamp(3, Timestamp.valueOf(el.getDateDebut()));
+            ps.setTimestamp(4, Timestamp.valueOf(el.getDateFin()));
+            
+            String statutInitial = calculerStatut(el);
+            ps.setString(5, statutInitial);
+            
+            setNullableInt(ps, 6, el.getCibleUfrId());
+            setNullableInt(ps, 7, el.getCibleDepartementId());
+            setNullableInt(ps, 8, el.getCibleFiliereId()); 
+            setNullableString(ps, 9, el.getCibleNiveau());
+            setNullableString(ps, 10, el.getCibleProfession());
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de l'insertion de l'élection");
+            e.printStackTrace();
         }
-        return 0;
-    }
-
-    public int getTotalElections() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM elections";
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) return rs.getInt(1);
-        }
-        return 0;
+        return false;
     }
 
     /**
-     * Récupère le nombre d'électeurs concernés par une élection
+     * Mettre à jour une élection existante en base.
+     */
+    public boolean updateElection(Election el) {
+        String sql = "UPDATE elections SET " +
+                    "titre = ?, type_election = ?, date_debut = ?, date_fin = ?, statut = ?, " +
+                    "cible_ufr_id = ?, cible_departement_id = ?, cible_filiere_id = ?, cible_niveau = ?, cible_profession = ? " + 
+                    "WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, el.getTitre());
+            ps.setString(2, el.getTypeElection());
+            ps.setTimestamp(3, Timestamp.valueOf(el.getDateDebut()));
+            ps.setTimestamp(4, Timestamp.valueOf(el.getDateFin()));
+            
+            String nouveauStatut = calculerStatut(el);
+            ps.setString(5, nouveauStatut);
+            
+            setNullableInt(ps, 6, el.getCibleUfrId());
+            setNullableInt(ps, 7, el.getCibleDepartementId());
+            setNullableInt(ps, 8, el.getCibleFiliereId()); 
+            setNullableString(ps, 9, el.getCibleNiveau());
+            setNullableString(ps, 10, el.getCibleProfession());
+            
+            ps.setInt(11, el.getId());
+            if (ps.executeUpdate() > 0) {
+                el.setStatut(nouveauStatut);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la mise à jour de l'élection ID " + el.getId());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Met à jour uniquement le champ statut d'une élection.
+     */
+    public boolean updateStatus(int electionId, String newStatus) {
+        String sql = "UPDATE elections SET statut = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newStatus);
+            ps.setInt(2, electionId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la mise à jour du statut en base (ID: " + electionId + ")");
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Parcourt toutes les élections et recalcule dynamiquement leurs statuts en base
+     * si les dates de début ou de fin sont dépassées.
+     */
+    public void updateAllStatuses() {
+        List<Election> elections = getAllElections();
+        int updated = 0;
+        
+        for (Election el : elections) {
+            String nouveauStatut = calculerStatut(el);
+            if (!nouveauStatut.equals(el.getStatut())) {
+                if (updateStatus(el.getId(), nouveauStatut)) {
+                    el.setStatut(nouveauStatut);
+                    updated++;
+                }
+            }
+        }
+        
+        if (updated > 0) {
+            System.out.println("✅ " + updated + " statut(s) d'élection mis à jour automatiquement.");
+        }
+    }
+
+    /**
+     * Supprime définitivement une élection de la base de données.
+     */
+    public boolean deleteElection(int id) {
+        String sql = "DELETE FROM elections WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Erreur lors de la suppression de l'élection n° " + id);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // =========================================================================
+    // 3. STATISTIQUES & COMPTAGE
+    // =========================================================================
+
+    /**
+     * Calcule le nombre potentiel d'électeurs concernés par une élection
+     * en fonction du ciblage (UFR, Département, Filière, Niveau, Profession).
      */
     public int getElecteursCountForElection(int electionId) throws SQLException {
         Election election = getElectionById(electionId);
         if (election == null) return 0;
         
         StringBuilder sql = new StringBuilder("SELECT COUNT(DISTINCT u.id) FROM users u ");
-        sql.append("JOIN filieres f ON u.filiere_id = f.id ");
-        sql.append("JOIN departements d ON f.departement_id = d.id ");
-        sql.append("JOIN ufr uf ON d.ufr_id = uf.id WHERE 1=1 ");
+        sql.append("LEFT JOIN filieres f ON u.filiere_id = f.id ");
+        sql.append("LEFT JOIN departements d ON f.departement_id = d.id ");
+        sql.append("LEFT JOIN ufr uf ON d.ufr_id = uf.id WHERE 1=1 ");
         
         List<Object> params = new ArrayList<>();
-        
-        Integer ufrId = election.getCible_ufr_id();
+        Integer ufrId = election.getCibleUfrId();
         if (ufrId != null) {
             sql.append("AND uf.id = ? ");
             params.add(ufrId);
         }
-        
-        Integer depId = election.getCible_departement_id();
+        Integer depId = election.getCibleDepartementId();
         if (depId != null) {
             sql.append("AND d.id = ? ");
             params.add(depId);
         }
-        
-        Integer filId = election.getCible_filiere_id();
+        Integer filId = election.getCibleFiliereId();
         if (filId != null) {
             sql.append("AND u.filiere_id = ? ");
             params.add(filId);
         }
-        
-        String niveau = election.getCible_niveau();
+        String niveau = election.getCibleNiveau();
         if (niveau != null && !niveau.trim().isEmpty()) {
             sql.append("AND u.niveau = ? ");
             params.add(niveau);
         }
-
-        String profession = election.getCible_profession();
+        String profession = election.getCibleProfession();
         if (profession != null && !profession.trim().isEmpty()) {
             sql.append("AND u.profession LIKE ? ");
             params.add("%" + profession + "%");
@@ -357,27 +351,126 @@ public class ElectionDAO {
         return 0;
     }
 
-    public void updateAllStatuses() {
-        List<Election> elections = getAllElections();
-        int updated = 0;
-        
-        for (Election el : elections) {
-            String nouveauStatut = el.calculerStatut();
-            if (!nouveauStatut.equals(el.getStatut())) {
-                if (updateStatus(el.getId(), nouveauStatut)) {
-                    el.setStatut(nouveauStatut);
-                    updated++;
-                }
+    /**
+     * Compte le nombre d'élections correspondant à un statut précis.
+     */
+    public int countElectionsByStatut(String statut) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM elections WHERE statut = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, statut);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
             }
         }
-        
-        if (updated > 0) {
-            System.out.println("✅ " + updated + " statut(s) d'élection mis à jour automatiquement");
-        }
+        return 0;
     }
 
-    // ===================== HELPER MAPPING ==============================
+    /**
+     * Compte le nombre total d'élections créées.
+     */
+    public int getTotalElections() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM elections";
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
 
+    // =========================================================================
+    // 4. LOGIQUE MÉTIER & CALCULS D'ÉTAT
+    // =========================================================================
+
+    /**
+     * Détermine dynamiquement si l'élection doit être "En préparation", "Ouverte" ou "Fermée"
+     * selon l'heure actuelle et ses dates de début/fin.
+     */
+    public String calculerStatut(Election el) {
+        if (el == null) return "Inconnu";
+        LocalDateTime maintenant = LocalDateTime.now();
+        if (el.getDateDebut() != null && maintenant.isBefore(el.getDateDebut())) { 
+            return "En préparation"; 
+        } else if (el.getDateFin() != null && maintenant.isAfter(el.getDateFin())) { 
+            return "Fermée"; 
+        } else { 
+            return "Ouverte"; 
+        }    
+    }
+
+    public boolean estOuverte(Election el) { return el != null && "Ouverte".equals(el.getStatut()); }
+    public boolean estFermee(Election el) { return el != null && "Fermée".equals(el.getStatut()); }
+    public boolean enPreparation(Election el) { return el != null && "En préparation".equals(el.getStatut()); }
+
+    public boolean estAccessible(Election el) {
+        return estOuverte(el) && !estFermee(el);
+    }
+
+    public boolean estCibleeSurUfr(Election el) { return el != null && el.getCibleUfrId() != null && el.getCibleUfrId() > 0; }
+    public boolean estCibleeSurDepartement(Election el) { return el != null && el.getCibleDepartementId() != null && el.getCibleDepartementId() > 0; }
+    public boolean estCibleeSurFiliere(Election el) { return el != null && el.getCibleFiliereId() != null && el.getCibleFiliereId() > 0; }
+    public boolean estCibleeSurNiveau(Election el) { return el != null && el.getCibleNiveau() != null && !el.getCibleNiveau().isEmpty(); }
+    
+    public boolean estGenerale(Election el) {
+        return !estCibleeSurUfr(el) && !estCibleeSurDepartement(el) && !estCibleeSurFiliere(el) && !estCibleeSurNiveau(el);
+    }
+
+    // =========================================================================
+    // 5. FORMATEURS & UTILITAIRES D'AFFICHAGE (IHM/UI)
+    // =========================================================================
+
+    public String getCibleIdAffichage(Election el) {
+        if (el == null) return "Tous";
+        if (el.getCibleUfrId() != null) return String.valueOf(el.getCibleUfrId());
+        if (el.getCibleDepartementId() != null) return String.valueOf(el.getCibleDepartementId());
+        if (el.getCibleFiliereId() != null) return String.valueOf(el.getCibleFiliereId());
+        return "Tous";
+    }
+
+    public String getCibleNomAffichage(Election el) {
+        if (el == null) return "Toutes les cibles";
+        if (el.getUfr() != null && el.getUfr().getNom() != null) return el.getUfr().getNom();
+        if (el.getDepartement() != null && el.getDepartement().getNom() != null) return el.getDepartement().getNom();
+        if (el.getFiliere() != null && el.getFiliere().getNom() != null) return el.getFiliere().getNom();
+        return "Toutes les cibles";
+    }
+
+    public String getStatutCouleur(Election el) {
+        if (estOuverte(el)) return "green";
+        if (estFermee(el)) return "red";
+        return "orange";
+    }
+
+    public String getStatutAvecEmoji(Election el) {
+        if (estOuverte(el)) return "🟢 Ouverte";
+        if (estFermee(el)) return "🔴 Fermée";
+        return "🟡 En préparation";
+    }
+
+    // =========================================================================
+    // 6. VALIDATIONS
+    // =========================================================================
+
+    /**
+     * Vérifie la validité des attributs essentiels d'une élection.
+     */
+    public boolean isValid(Election el) {
+        if (el == null) return false;
+        if (el.getTitre() == null || el.getTitre().trim().isEmpty()) return false;
+        if (el.getTypeElection() == null || el.getTypeElection().trim().isEmpty()) return false;
+        if (el.getDateDebut() == null || el.getDateFin() == null) return false;
+        if (el.getDateDebut().isAfter(el.getDateFin())) return false;
+        return true;
+    }
+
+    // =========================================================================
+    // 7. MAPPING & UTILITAIRES JDBC INTERNES
+    // =========================================================================
+
+    /**
+     * Mappe une ligne d'un ResultSet SQL vers un objet Java `Election`.
+     */
     private Election mapResultSetToElection(ResultSet rs) throws SQLException {
         Election el = new Election();
         el.setId(rs.getInt("id"));
@@ -391,7 +484,7 @@ public class ElectionDAO {
         if (dateFin != null) el.setDateFin(dateFin.toLocalDateTime());
         
         String statutBase = rs.getString("statut");
-        String statutActuel = el.calculerStatut();
+        String statutActuel = calculerStatut(el);
         
         if (!statutActuel.equals(statutBase)) {
             updateStatus(el.getId(), statutActuel);
@@ -403,37 +496,38 @@ public class ElectionDAO {
         // Mapping Cibles
         int ufrId = rs.getInt("cible_ufr_id");
         if (!rs.wasNull()) {
-            el.setCible_ufr_id(ufrId);
+            el.setCibleUfrId(ufrId);
             Ufr u = new Ufr();
             u.setId(ufrId);
             u.setNom(rs.getString("ufr_nom"));
             el.setUfr(u);
         }
-        
         int depId = rs.getInt("cible_departement_id");
         if (!rs.wasNull()) {
-            el.setCible_departement_id(depId);
+            el.setCibleDepartementId(depId);
             Departement d = new Departement();
             d.setId(depId);
             d.setNom(rs.getString("departement_nom"));
             el.setDepartement(d);
         }
-        
         int filId = rs.getInt("cible_filiere_id");
         if (!rs.wasNull()) {
-            el.setCible_filiere_id(filId);
+            el.setCibleFiliereId(filId);
             Filiere f = new Filiere();
             f.setId(filId);
             f.setNom(rs.getString("filiere_nom"));
             el.setFiliere(f);
         }
         
-        el.setCible_niveau(rs.getString("cible_niveau"));
-        el.setCible_profession(rs.getString("cible_profession"));
+        el.setCibleNiveau(rs.getString("cible_niveau"));
+        el.setCibleProfession(rs.getString("cible_profession"));
         
         return el;
     }
 
+    /**
+     * Gère correctement l'insertion de valeurs d'entiers pouvant être NULL.
+     */
     private void setNullableInt(PreparedStatement ps, int index, Integer value) throws SQLException {
         if (value != null && value > 0) {
             ps.setInt(index, value);
@@ -442,6 +536,9 @@ public class ElectionDAO {
         }
     }
 
+    /**
+     * Gère correctement l'insertion de valeurs textuelles pouvant être NULL ou vides.
+     */
     private void setNullableString(PreparedStatement ps, int index, String value) throws SQLException {
         if (value != null && !value.trim().isEmpty()) {
             ps.setString(index, value);

@@ -9,11 +9,11 @@ public class Election {
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
     private String statut;
-    private Integer cible_ufr_id;
-    private Integer cible_departement_id;
-    private Integer cible_filiere_id;
-    private String cible_niveau;
-    private String cible_profession; 
+    private Integer cibleUfrId;
+    private Integer cibleDepartementId;
+    private Integer cibleFiliereId;
+    private String cibleNiveau;
+    private String cibleProfession; 
     private Ufr ufr;
     private Departement departement;
     private Filiere filiere;
@@ -21,48 +21,24 @@ public class Election {
     public Election() {}
     
     public Election(int id, String titre, String typeElection, LocalDateTime dateDebut, LocalDateTime dateFin,
-            String statut, Integer cible_ufr_id, Integer cible_departement_id, Integer cible_filiere_id,
-            String cible_niveau, String cible_profession, Ufr ufr, Departement departement, Filiere filiere) {
+            String statut, Integer cibleUfrId, Integer cibleDepartementId, Integer cibleFiliereId,
+            String cibleNiveau, String cibleProfession, Ufr ufr, Departement departement, Filiere filiere) {
         this.id = id;
         this.titre = titre;
         this.typeElection = typeElection;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
         this.statut = statut;
-        this.cible_ufr_id = cible_ufr_id;
-        this.cible_departement_id = cible_departement_id;
-        this.cible_filiere_id = cible_filiere_id;
-        this.cible_niveau = cible_niveau;
-        this.cible_profession = cible_profession;
+        this.cibleUfrId = cibleUfrId;
+        this.cibleDepartementId = cibleDepartementId;
+        this.cibleFiliereId = cibleFiliereId;
+        this.cibleNiveau = cibleNiveau;
+        this.cibleProfession = cibleProfession;
         this.ufr = ufr;
         this.departement = departement;
         this.filiere = filiere;
     }
 
-    public String calculerStatut() {
-        LocalDateTime maintenant = LocalDateTime.now();
-        if (dateDebut != null && maintenant.isBefore(this.dateDebut)) { return "En préparation"; }
-        else if (dateFin != null && maintenant.isAfter(this.dateFin)) { return "Fermée"; }
-        else { return "Ouverte"; }    
-    }
-
-    public boolean estOuverte() { return "Ouverte".equals(statut); }
-    public boolean estFermee() { return "Fermée".equals(statut); }
-    public boolean enPreparation() { return "En préparation".equals(statut); }
-
-    public String getCibleIdAffichage() {
-        if (cible_ufr_id != null) return String.valueOf(cible_ufr_id);
-        if (cible_departement_id != null) return String.valueOf(cible_departement_id);
-        if (cible_filiere_id != null) return String.valueOf(cible_filiere_id);
-        return "Tous";
-    }
-
-    public String getCibleNomAffichage() {
-        if (ufr != null && ufr.getNom() != null) return ufr.getNom();
-        if (departement != null && departement.getNom() != null) return departement.getNom();
-        if (filiere != null && filiere.getNom() != null) return filiere.getNom();
-        return "Toutes les cibles";
-    }
 
     // Getters & Setters Standard
     public int getId() { return id; }
@@ -83,36 +59,20 @@ public class Election {
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
 
-    public Integer getCible_ufr_id() { return cible_ufr_id; }
-    public void setCible_ufr_id(Integer cible_ufr_id) { this.cible_ufr_id = cible_ufr_id; }
+    public Integer getCibleUfrId() { return cibleUfrId; }
+    public void setCibleUfrId(Integer cibleUfrId) { this.cibleUfrId = cibleUfrId; }
 
-    public Integer getCible_departement_id() { return cible_departement_id; }
-    public void setCible_departement_id(Integer cible_departement_id) { this.cible_departement_id = cible_departement_id; }
-    
-    public Integer getCible_filiere_id() { return cible_filiere_id; }
-    public void setCible_filiere_id(Integer cible_filiere_id) { this.cible_filiere_id = cible_filiere_id; }
-    
-    public String getCible_niveau() { return cible_niveau; }
-    public void setCible_niveau(String cible_niveau) { this.cible_niveau = cible_niveau; }
+    public Integer getCibleDepartementId() { return cibleDepartementId; }
+    public void setCibleDepartementId(Integer cibleDepartementId) { this.cibleDepartementId = cibleDepartementId; }
 
-    public String getCible_profession() { return cible_profession; }
-    public void setCible_profession(String cible_profession) { this.cible_profession = cible_profession; }
+    public Integer getCibleFiliereId() { return cibleFiliereId; }
+    public void setCibleFiliereId(Integer cibleFiliereId) { this.cibleFiliereId = cibleFiliereId; }
 
-    // Alias CamelCase
-    public Integer getCibleUfrId() { return cible_ufr_id; }
-    public void setCibleUfrId(Integer cibleUfrId) { this.cible_ufr_id = cibleUfrId; }
+    public String getCibleNiveau() { return cibleNiveau; }
+    public void setCibleNiveau(String cibleNiveau) { this.cibleNiveau = cibleNiveau; }
 
-    public Integer getCibleDepartementId() { return cible_departement_id; }
-    public void setCibleDepartementId(Integer cibleDepartementId) { this.cible_departement_id = cibleDepartementId; }
-
-    public Integer getCibleFiliereId() { return cible_filiere_id; }
-    public void setCibleFiliereId(Integer cibleFiliereId) { this.cible_filiere_id = cibleFiliereId; }
-
-    public String getCibleNiveau() { return cible_niveau; }
-    public void setCibleNiveau(String cibleNiveau) { this.cible_niveau = cibleNiveau; }
-
-    public String getCibleProfession() { return cible_profession; }
-    public void setCibleProfession(String cibleProfession) { this.cible_profession = cibleProfession; }
+    public String getCibleProfession() { return cibleProfession; }
+    public void setCibleProfession(String cibleProfession) { this.cibleProfession = cibleProfession; }
 
     public Ufr getUfr() { return ufr; }
     public void setUfr(Ufr ufr) { this.ufr = ufr; }

@@ -22,7 +22,7 @@ public class VoteDAO {
         String sql = "SELECT COUNT(*) FROM votes WHERE election_id = ? AND utilisateur_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             ps.setInt(2, userId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -38,20 +38,14 @@ public class VoteDAO {
     }
 
     /**
-     * Vérifie si un utilisateur a voté pour une élection spécifique (alias)
-     */
-    public boolean userHasVoted(int electionId, int userId) {
-        return hasUserVoted(electionId, userId);
-    }
-
-    /**
      * Vérifie si un candidat a reçu des votes
      */
+
     public boolean hasCandidatReceivedVotes(int candidatId) {
         String sql = "SELECT COUNT(*) FROM votes WHERE candidat_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidatId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -81,9 +75,8 @@ public class VoteDAO {
                     "WHERE c.election_id = ? " +
                     "GROUP BY c.id, u.nom, u.prenom " + 
                     "ORDER BY voix DESC";
-
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) { 
+            PreparedStatement ps = conn.prepareStatement(sql)) { 
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -117,7 +110,7 @@ public class VoteDAO {
                     "ORDER BY voix DESC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) { 
+            PreparedStatement ps = conn.prepareStatement(sql)) { 
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -154,7 +147,7 @@ public class VoteDAO {
         String sql = "SELECT COUNT(*) FROM votes WHERE candidat_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidatId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -175,7 +168,7 @@ public class VoteDAO {
         String sql = "SELECT COUNT(*) FROM votes WHERE election_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -201,7 +194,7 @@ public class VoteDAO {
         String sql = "INSERT INTO votes (election_id, candidat_id, utilisateur_id, date_vote) VALUES (?, ?, ?, NOW())";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             ps.setInt(2, candidateId);
             ps.setInt(3, userId);
@@ -221,64 +214,6 @@ public class VoteDAO {
         return false;
     }
 
-    /**
-     * Supprime un vote (utile pour l'administration)
-     */
-    public boolean deleteVote(int voteId) {
-        String sql = "DELETE FROM votes WHERE id = ?";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, voteId);
-            if (ps.executeUpdate() > 0) {
-                System.out.println("✅ Succès : Vote supprimé avec succès.");
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la suppression du vote");
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Supprime tous les votes d'une élection
-     */
-    public boolean deleteVotesForElection(int electionId) {
-        String sql = "DELETE FROM votes WHERE election_id = ?";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, electionId);
-            int deleted = ps.executeUpdate();
-            System.out.println("✅ " + deleted + " vote(s) supprimé(s) pour l'élection " + electionId);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la suppression des votes de l'élection");
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Supprime les votes d'un utilisateur
-     */
-    public boolean deleteVotesForUser(int userId) {
-        String sql = "DELETE FROM votes WHERE utilisateur_id = ?";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            int deleted = ps.executeUpdate();
-            System.out.println("✅ " + deleted + " vote(s) supprimé(s) pour l'utilisateur " + userId);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("❌ Erreur lors de la suppression des votes de l'utilisateur");
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     // ==========================================
     // STATISTIQUES
     // ==========================================
@@ -289,8 +224,8 @@ public class VoteDAO {
     public int getTotalVotants() throws SQLException {
         String sql = "SELECT COUNT(DISTINCT utilisateur_id) FROM votes";
         try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -304,7 +239,7 @@ public class VoteDAO {
     public int getVotantsForElection(int electionId) throws SQLException {
         String sql = "SELECT COUNT(DISTINCT utilisateur_id) FROM votes WHERE election_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -392,7 +327,7 @@ public class VoteDAO {
                     "ORDER BY u.nom, u.prenom";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -425,7 +360,7 @@ public class VoteDAO {
                     "ORDER BY u.nom, u.prenom";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -458,7 +393,7 @@ public class VoteDAO {
                     "ORDER BY nb_votes DESC";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -482,7 +417,7 @@ public class VoteDAO {
                     "ORDER BY nb_votes DESC";
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, electionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -501,48 +436,21 @@ public class VoteDAO {
      * Récupère le nombre d'électeurs inscrits pour une élection
      */
     private int getElecteursCountForElection(int electionId) throws SQLException {
-        // Cette méthode sera implémentée dans ElectionDAO
-        // Pour l'instant, on retourne le total des utilisateurs
         UserDAO userDAO = new UserDAO();
         return userDAO.getTotalUsers();
-    }
-
-    /**
-     * Récupère le nombre de votes pour une élection et un UFR spécifique
-     */
-    public int getVotesCountForElectionAndUfr(int electionId, int ufrId) throws SQLException {
-        String sql = "SELECT COUNT(v.id) FROM votes v " +
-                    "JOIN users u ON v.utilisateur_id = u.id " +
-                    "WHERE v.election_id = ? AND u.ufr_id = ?";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, electionId);
-            ps.setInt(2, ufrId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        }
-        return 0;
     }
 
     // ==========================================
     // MAPPING
     // ==========================================
 
-    /**
-     * Convertit un ResultSet en objet User
-     */
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User u = new User();
         u.setId(rs.getInt("id"));
-        u.setCode_permanent(rs.getInt("code_permanent"));
+        u.setCodePermanent(rs.getInt("code_permanent"));
         u.setNom(rs.getString("nom"));
         u.setPrenom(rs.getString("prenom"));
         u.setEmail(rs.getString("email"));
-        u.setLogin(rs.getString("login"));
         u.setProfession(rs.getString("role"));
         u.setNiveau(rs.getString("niveau"));
         
@@ -550,16 +458,7 @@ public class VoteDAO {
         if (!rs.wasNull()) {
             u.setFiliereId(filiereId);
         }
-        
-        int ufrId = rs.getInt("ufr_id");
-        if (!rs.wasNull()) {
-            u.setUfrId(ufrId);
-        }
-        
-        u.setFiliereNom(rs.getString("filiere_nom"));
-        u.setDepartementNom(rs.getString("departement_nom"));
-        u.setUfrNom(rs.getString("ufr_nom"));
-        
+
         return u;
     }
 }
